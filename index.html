@@ -331,7 +331,7 @@ table.bank-table th { background: #003300; color: white; }
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
     
-    // Explicitly configure Supabase client to use PKCE flow to prevent static host 404s
+    // Supabase client initialization with PKCE flow enabled
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
         auth: {
             flowType: 'pkce',
@@ -416,8 +416,17 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Handles PKCE code exchange automatically on load
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        // Intercept OAuth hash fragment tokens directly to prevent GitHub Pages 404
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data && data.session) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                enterPortalApp();
+                return;
+            }
+        }
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
         } else {
@@ -431,6 +440,7 @@ table.bank-table th { background: #003300; color: white; }
         localStorage.removeItem('ri_student_code_session');
         document.getElementById('main-portal-app').style.display = 'none';
         document.getElementById('auth-wrapper').style.display = 'flex';
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     // Run session check on load
