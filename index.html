@@ -132,7 +132,7 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        width: 40%;
+        width: 50%;
         max-width: 80%; 
         height: auto;
         object-fit: contain;
@@ -330,7 +330,16 @@ table.bank-table th { background: #003300; color: white; }
 <script>
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Explicitly configure Supabase client to use PKCE flow to prevent static host 404s
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
+        auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+        }
+    });
 
     let localDB = [];
 
@@ -366,16 +375,16 @@ table.bank-table th { background: #003300; color: white; }
             else checkUserSession();
         }
     }
-    async function loginWithMicrosoft() {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'azure',
-        options: {
-            scopes: 'email profile',
-            redirectTo: 'https://benjiepantinoce.github.io/ri-quiz-app/'
-        }
-    });
-    if (error) document.getElementById('auth-error-msg').innerText = error.message;
 
+    async function loginWithMicrosoft() {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'azure',
+            options: {
+                scopes: 'email profile',
+                redirectTo: 'https://benjiepantinoce.github.io/ri-quiz-app/'
+            }
+        });
+        if (error) document.getElementById('auth-error-msg').innerText = error.message;
     }
 
     async function handleEnrollmentCodeLogin() {
@@ -407,8 +416,8 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Handle Supabase OAuth return hash tokens automatically
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        // Handles PKCE code exchange automatically on load
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
         } else {
