@@ -75,7 +75,31 @@
         button.action-btn:hover { background: #174a75; }
 
         .student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-        .choice-item { display: block; font-weight: normal; margin: 10px 0; cursor: pointer; background: #fafafa; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        /* Choice Styling with Highlight State and Hidden Radio Circles */
+        .choice-item { 
+            display: block; 
+            font-weight: normal; 
+            margin: 10px 0; 
+            cursor: pointer; 
+            background: #fafafa; 
+            padding: 12px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            transition: all 0.2s ease; 
+        }
+        .choice-item:hover { background: #f0f7f0; border-color: #003300; }
+        .choice-item.selected-highlight { 
+            background: #e8f5e9; 
+            border-color: #2e7d32; 
+            font-weight: bold; 
+            color: #003300; 
+            box-shadow: inset 3px 0 0 #2e7d32; 
+        }
+        .choice-item input[type="radio"] { 
+            display: none; 
+        }
+
         .solution-box { background: #e8f5e9; padding: 15px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
 
         table.bank-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -244,6 +268,21 @@
         };
     }
 
+    // --- CHOICE HIGHLIGHT LISTENER HELPER ---
+    function setupChoiceHighlighting(containerElement) {
+        containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const name = e.target.name;
+                document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+                    r.closest('.choice-item').classList.remove('selected-highlight');
+                });
+                if (e.target.checked) {
+                    e.target.closest('.choice-item').classList.add('selected-highlight');
+                }
+            });
+        });
+    }
+
     // --- DAILY CHALLENGE ROTATION ---
     function loadDailyChallenge() {
         const container = document.getElementById('daily-problem-container');
@@ -286,6 +325,8 @@
             <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:15px; width:auto; padding:8px 20px;">Submit Answer</button>
             <div id="daily-feedback" style="margin-top:15px; display:none;"></div>
         `;
+        
+        setupChoiceHighlighting(container);
         if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
     }
 
@@ -330,7 +371,6 @@
 
         if (pool.length === 0) return alert("No questions available matching your selected category filters.");
 
-        // Shuffle pool and accumulate records until total questions meet requested item count
         let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
         shuffledPool.sort((a, b) => (a.appearances || 0) - (b.appearances || 0));
 
@@ -410,6 +450,8 @@
             cardDiv.innerHTML = htmlContent;
             paper.appendChild(cardDiv);
 
+            setupChoiceHighlighting(cardDiv);
+
             if (record.solutionImages && record.solutionImages.length > 0) {
                 setTimeout(() => {
                     let solImgContainer = document.getElementById(`sol_images_${record.id}`);
@@ -437,7 +479,7 @@
         activeExamTimer = setInterval(() => {
             let m = Math.floor(timer / 60);
             let s = timer % 60;
-            badge.innerText = `⏱️️ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             if (--timer < 0) {
                 clearInterval(activeExamTimer);
                 alert("Time's up! Submitting exam automatically.");
