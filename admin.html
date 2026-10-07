@@ -15,96 +15,96 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 950px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #003300; text-align: center; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 10px; color: #333; -webkit-text-size-adjust: 100%; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #003300; text-align: center; margin-bottom: 2px; font-size: 22px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 15px; font-size: 13px; }
         
-        /* Tabs */
-        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; background: #f1f1f1; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0; margin-right: 5px; color: #555; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; overflow-x: auto; }
+        .tab { padding: 10px 15px; cursor: pointer; font-weight: bold; background: #f1f1f1; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0; margin-right: 4px; color: #555; font-size: 13px; white-space: nowrap; }
         .tab.active { background: white; color: #074b07; border-top: 3px solid #003300; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #003300; }
-        input[type="text"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
-        textarea { resize: vertical; height: 90px; }
-        .row { display: flex; gap: 15px; }
-        .row .form-group { flex: 1; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 13px; color: #003300; }
+        input[type="text"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        textarea { resize: vertical; height: 80px; }
+        .row { display: flex; gap: 10px; flex-direction: column; }
+        @media (min-width: 600px) { .row { flex-direction: row; } .row .form-group { flex: 1; } }
         
-        .choice-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .choice-row label { width: 30px; font-weight: bold; font-size: 16px; margin: 0; }
+        .choice-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .choice-row label { width: 25px; font-weight: bold; font-size: 14px; margin: 0; }
         .choice-input-wrapper { flex: 1; }
 
-        .question-block-card { background: #fafbfc; border: 1px solid #cce0cc; padding: 20px; border-radius: 6px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        .question-block-card { background: #fafbfc; border: 1px solid #cce0cc; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
 
-        /* Master Sticky Toolbar & Equation Builder */
         .casio-toolbar { 
-            position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 10px; 
-            background: #e4e9ec; padding: 12px 15px; border: 2px solid #003300; border-radius: 6px; 
-            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 8px; 
+            background: #e4e9ec; padding: 10px; border: 2px solid #003300; border-radius: 6px; 
+            margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
         }
-        .toolbar-top-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .casio-toolbar button { background: #3b5998; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .toolbar-top-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .casio-toolbar button { background: #3b5998; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .casio-toolbar button:hover { background: #2d4373; }
-        .toolbar-section { display: flex; gap: 6px; align-items: center; border-right: 2px solid #cbd5e1; padding-right: 10px; margin-right: 6px; }
+        .toolbar-section { display: flex; gap: 5px; align-items: center; border-right: 2px solid #cbd5e1; padding-right: 8px; margin-right: 4px; }
         .toolbar-section:last-child { border-right: none; }
 
         .equation-builder-container { 
-            display: flex; gap: 10px; align-items: center; background: #fff; padding: 6px; 
-            border-radius: 4px; border: 1px solid #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; gap: 8px; align-items: center; background: #fff; padding: 5px; 
+            border-radius: 4px; border: 1px solid #ccc;
         }
-        math-field { flex: 1; padding: 5px; font-size: 18px; border: none; outline: none; background: transparent; }
-        .insert-btn { background: #28a745 !important; font-size: 14px !important; padding: 10px 15px !important; }
+        math-field { flex: 1; padding: 4px; font-size: 16px; border: none; outline: none; background: transparent; }
+        .insert-btn { background: #28a745 !important; font-size: 13px !important; padding: 8px 12px !important; }
 
-        .paste-zone { border: 2px dashed #003300; padding: 12px; text-align: center; background: #f9fbfb; border-radius: 4px; cursor: pointer; margin-bottom: 10px; font-size: 14px; color: #555; }
-        .image-gallery { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .image-thumb { position: relative; width: 100px; height: 100px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #fff; }
+        .paste-zone { border: 2px dashed #003300; padding: 10px; text-align: center; background: #f9fbfb; border-radius: 4px; cursor: pointer; margin-bottom: 8px; font-size: 13px; color: #555; }
+        .image-gallery { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .image-thumb { position: relative; width: 80px; height: 80px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #fff; }
         .image-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .image-thumb button { position: absolute; top: 2px; right: 2px; background: rgba(217, 83, 79, 0.9); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; }
+        .image-thumb button { position: absolute; top: 2px; right: 2px; background: rgba(217, 83, 79, 0.9); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
 
-        .student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-        button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
+        .student-image-display { width: 100%; max-width: 100%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
+        button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px; font-size: 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
         button.primary-btn:hover { background: #004d00; }
-        .success-msg { background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 4px; margin-bottom: 20px; text-align: center; font-weight: bold; display: none; border-left: 4px solid #4caf50; }
+        .success-msg { background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; font-weight: bold; display: none; border-left: 4px solid #4caf50; font-size: 13px; }
 
-        .student-preview-card { background: #fff; border: 1px solid #dcdcdc; padding: 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .scenario-box-preview { background: #eef2f3; padding: 15px; border-left: 4px solid #003300; margin-bottom: 15px; border-radius: 4px; line-height: 1.6; }
-        .choices-preview label { display: block; font-weight: normal; margin: 8px 0; cursor: pointer; background: #fafafa; padding: 8px; border: 1px solid #eee; border-radius: 4px; }
-        .solution-preview-box { background: #e8f5e9; padding: 15px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
+        .student-preview-card { background: #fff; border: 1px solid #dcdcdc; padding: 15px; border-radius: 6px; }
+        .scenario-box-preview { background: #eef2f3; padding: 12px; border-left: 4px solid #003300; margin-bottom: 12px; border-radius: 4px; font-size: 13px; line-height: 1.5; }
+        .choices-preview label { display: block; font-weight: normal; margin: 6px 0; cursor: pointer; background: #fafafa; padding: 8px; border: 1px solid #eee; border-radius: 4px; font-size: 13px; }
+        .solution-preview-box { background: #e8f5e9; padding: 12px; margin-top: 12px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 13px; }
 
-        .filter-box { background: #f8f9fa; border: 1px solid #ccd1d9; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        table.bank-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        .filter-box { background: #f8f9fa; border: 1px solid #ccd1d9; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table.bank-table { width: 100%; border-collapse: collapse; min-width: 500px; margin-top: 10px; }
+        table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
         table.bank-table th { background: #003300; color: white; }
-        .action-btns button { padding: 5px 10px; margin-right: 5px; font-size: 12px; border: none; border-radius: 3px; cursor: pointer; width: auto; font-weight: bold; }
+        .action-btns button { padding: 4px 8px; margin-right: 4px; font-size: 11px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; width: auto; }
         .btn-edit { background: #20639b; color: white; }
         .btn-delete { background: #d9534f; color: white; }
     </style>
 </head>
 <body>
 
-<!-- MAIN ADMIN CONTENT -->
 <div class="container" id="admin-content">
     <h1>CE Exam Admin Panel</h1>
-    <p class="subtitle">Supabase Backend Question Repository & Management System</p>
+    <p class="subtitle">Supabase Backend Question Repository & Management</p>
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('creator')">✏ Question Creator</div>
-        <div class="tab" onclick="switchTab('preview')">👁 Student POV Preview</div>
-        <div class="tab" onclick="switchTab('bank')">📂 Manage & Edit Bank (<span id="bank-counter">0</span>)</div>
+        <div class="tab" onclick="switchTab('preview')">👁 Student Preview</div>
+        <div class="tab" onclick="switchTab('bank')">📂 Question Bank (<span id="bank-counter">0</span>)</div>
     </div>
 
     <div id="success-alert" class="success-msg">Question successfully saved to Supabase!</div>
 
+    <!-- TAB 1: CREATOR -->
     <div id="creator-tab" class="tab-content active">
         
-        <!-- MASTER TOOLBAR WITH QUICK FORMAT & EQUATION BUILDER -->
+        <!-- MASTER TOOLBAR -->
         <div class="casio-toolbar">
             <div class="toolbar-top-row">
-                <span style="font-size: 12px; font-weight: bold; color: #003300; margin-right: 5px;">Text Format:</span>
+                <span style="font-size: 11px; font-weight: bold; color: #003300;">Format:</span>
                 <div class="toolbar-section">
                     <button type="button" onclick="formatText('<b>', '</b>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><b>B</b></button>
                     <button type="button" onclick="formatText('<i>', '</i>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><i>I</i></button>
@@ -112,27 +112,19 @@
                     <button type="button" onclick="formatText('<sup>', '</sup>')" style="background: #fff; color: #333; border: 1px solid #ccc;">² Sup</button>
                 </div>
                 
-                <span style="font-size: 12px; font-weight: bold; color: #003300; margin-left: 10px; margin-right: 5px;">Equation Pad:</span>
+                <span style="font-size: 11px; font-weight: bold; color: #003300;">Math:</span>
                 <div class="toolbar-section">
-                    <button type="button" onclick="executeMathCommand('\\frac{#0}{#1}')">➗ Fraction</button>
+                    <button type="button" onclick="executeMathCommand('\\frac{#0}{#1}')">➗ Frac</button>
                     <button type="button" onclick="executeMathCommand('\\sqrt{#0}')">√ Root</button>
                     <button type="button" onclick="executeMathCommand('^{-1}')">x⁻¹</button>
                     <button type="button" onclick="executeMathCommand('^2')">x²</button>
-                    <button type="button" onclick="executeMathCommand('_{#0}')">Subscript</button>
-                </div>
-                <div class="toolbar-section">
-                    <button type="button" onclick="executeMathCommand('f\'_c')">f'c</button>
-                    <button type="button" onclick="executeMathCommand('M_u')">Mu</button>
-                    <button type="button" onclick="executeMathCommand('V_u')">Vu</button>
-                    <button type="button" onclick="executeMathCommand('\\theta')">θ</button>
-                    <button type="button" onclick="executeMathCommand('\\sigma')">σ</button>
                 </div>
             </div>
 
             <div class="equation-builder-container">
-                <span style="font-size: 13px; font-weight: bold; color: #555;">Builder:</span>
-                <math-field id="math-builder" placeholder="Build equation here, then click insert ➡"></math-field>
-                <button type="button" class="insert-btn" onclick="insertBuiltEquation()">➕ Insert into Text</button>
+                <span style="font-size: 12px; font-weight: bold; color: #555;">Builder:</span>
+                <math-field id="math-builder" placeholder="Type math formula..."></math-field>
+                <button type="button" class="insert-btn" onclick="insertBuiltEquation()">➕ Insert</button>
             </div>
         </div>
 
@@ -144,9 +136,8 @@
                     <label>Main Subject:</label>
                     <select id="main-subject" onchange="populateSubSubjects('main-subject', 'sub-subject')" required>
                         <option value="PSAD">PSAD (Principles of Structures & Design)</option>
-                        <option value="HGE">HPGE (Hydraulics & Geotechnical Engineering)</option>
+                        <option value="HPGE">HPGE (Hydraulics & Geotechnical)</option>
                         <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
-                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -157,11 +148,35 @@
 
             <div class="row">
                 <div class="form-group">
-                    <label>Is this a Situational Problem?</label>
+                    <label>Situational Problem?</label>
                     <select id="is-situational" onchange="toggleScenario()">
                         <option value="Yes">Yes (Shares a Situation Passage)</option>
                         <option value="No">No (Standalone Question)</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- PAST BOARD EXAM TOGGLE & OPTIONAL MONTH/YEAR (SITUATION LEVEL) -->
+            <div class="form-group" style="background: #f4f9f4; padding: 10px; border: 1px solid #cce0cc; border-radius: 4px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0 0 8px 0; color: #003300;">
+                    <input type="checkbox" id="is-past-board-situation" onchange="toggleBoardDateFields()" style="width: 18px; height: 18px; cursor: pointer;">
+                    ⭐ Tag entire situation/set as a <strong>Past CE Board Exam</strong> problem
+                </label>
+                <div id="board-date-container" style="display: none; display: flex; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #b2d8b2;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px;">Exam Month (Optional):</label>
+                        <select id="board-month" style="padding: 6px; font-size: 13px;">
+                            <option value="">-- Select Month --</option>
+                            <option value="November">November</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="August">August</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px;">Exam Year (Optional):</label>
+                        <input type="text" id="board-year" placeholder="e.g., 2025" style="padding: 6px; font-size: 13px;">
+                    </div>
                 </div>
             </div>
 
@@ -178,88 +193,96 @@
             <div id="scenario-group" class="form-group">
                 <label>Situation / Passage Text:</label>
                 <textarea id="scenario-text" placeholder="Enter common data and references..." onfocus="setActiveField(this)"></textarea>
-                <div class="paste-zone" contenteditable="true" onpaste="handleScenarioPaste(event)">📋 Click here and press <strong>Ctrl + V</strong> to paste situation figures</div>
+                <div class="paste-zone" contenteditable="true" onpaste="handleScenarioPaste(event)">📋 Click & press <strong>Ctrl + V</strong> to paste situation figures</div>
                 <div id="image-gallery-container" class="image-gallery"></div>
             </div>
 
-            <!-- DYNAMIC QUESTION BLOCKS CONTAINER -->
+            <!-- QUESTION BLOCKS CONTAINER -->
             <div id="question-blocks-container">
                 <div class="question-block-card" data-block-id="1">
-                    <h4 style="margin-top:0; color:#003300;">Question #1</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #1</h4>
+                        <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
+                    </div>
+                    
+                    <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
+                            <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
+                            ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                        </label>
+                    </div>
+
                     <div class="form-group">
-                        <label>Specific Question Prompt:</label>
+                        <label>Question Prompt:</label>
                         <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea>
                     </div>
-                    <label>Multiple Choice Options:</label>
+                    <label>Options:</label>
                     <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
                     <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
                     <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
                     <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
 
-                    <div class="row" style="margin-top: 15px;">
-                        <div class="form-group">
-                            <label>Correct Answer:</label>
-                            <select class="q-correct">
-                                <option value="A">Option A</option>
-                                <option value="B" selected>Option B</option>
-                                <option value="C">Option C</option>
-                                <option value="D">Option D</option>
-                            </select>
-                        </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Correct Answer:</label>
+                        <select class="q-correct">
+                            <option value="A">Option A</option>
+                            <option value="B" selected>Option B</option>
+                            <option value="C">Option C</option>
+                            <option value="D">Option D</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Step-by-Step Solution (Complete Solution Block):</label>
-                <textarea id="global-solution-text" placeholder="Detailed solution steps for all questions in this set..." onfocus="setActiveField(this)"></textarea>
-                <div class="paste-zone" contenteditable="true" onpaste="handleSolutionPaste(event)" style="margin-top: 10px;">📋 Click here and press <strong>Ctrl + V</strong> to paste solution figures (Multiple allowed)</div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Step-by-Step Solution:</label>
+                <textarea id="global-solution-text" placeholder="Detailed solution steps..." onfocus="setActiveField(this)"></textarea>
+                <div class="paste-zone" contenteditable="true" onpaste="handleSolutionPaste(event)" style="margin-top: 8px;">📋 Click & press <strong>Ctrl + V</strong> to paste solution figures</div>
                 <div id="solution-image-gallery-container" class="image-gallery"></div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <div style="display: flex; gap: 8px; margin-top: 15px; flex-direction: column;">
                 <button type="button" onclick="addNewQuestionBlock()" class="primary-btn" style="background: #20639b;">➕ Add another question</button>
-                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save & Finish to Supabase</button>
+                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save to Supabase</button>
             </div>
         </form>
     </div>
 
-    <!-- TAB 2: STUDENT POV PREVIEW -->
+    <!-- TAB 2: STUDENT PREVIEW -->
     <div id="preview-tab" class="tab-content">
-        <h3>Live Student View Simulation</h3>
+        <h3 style="font-size: 16px; color: #003300;">Live Student View Simulation</h3>
         <div class="student-preview-card">
             <div id="prev-situation-header" style="font-size: 13px; font-weight: bold; color: #003300; margin-bottom: 5px;"></div>
             <div class="scenario-box-preview" id="prev-scenario-wrapper">
                 <strong>Situation:</strong><br>
                 <span id="prev-scenario">No situation text entered yet.</span>
-                <div id="prev-image-gallery" style="margin-top: 10px;"></div>
+                <div id="prev-image-gallery" style="margin-top: 8px;"></div>
             </div>
             <div id="preview-questions-container"></div>
             <div id="prev-solution-box" class="solution-preview-box">
                 <strong>Solution:</strong><br>
                 <div id="prev-solution-content">No solution provided yet.</div>
-                <div id="prev-solution-image-gallery" style="margin-top: 10px;"></div>
+                <div id="prev-solution-image-gallery" style="margin-top: 8px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- TAB 3: MANAGE & EDIT QUESTION BANK -->
+    <!-- TAB 3: QUESTION BANK -->
     <div id="bank-tab" class="tab-content">
-        <h3>Supabase Stored Question Repository</h3>
+        <h3 style="font-size: 16px; color: #003300;">Supabase Question Repository</h3>
         <div class="filter-box">
-            <div class="row" style="margin-bottom: 12px;">
+            <div class="row" style="margin-bottom: 10px;">
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>Filter by Main Subject:</label>
+                    <label>Main Subject:</label>
                     <select id="filter-main" onchange="updateFilterSubSubjects(); renderQuestionBankTable();">
                         <option value="">-- All Main Subjects --</option>
                         <option value="PSAD">PSAD</option>
-                        <option value="HGE">HPGE</option>
+                        <option value="HPGE">HPGE</option>
                         <option value="MSTC">MSTC</option>
-                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>Filter by Sub-Subject:</label>
+                    <label>Sub-Subject:</label>
                     <select id="filter-sub" onchange="renderQuestionBankTable()">
                         <option value="">-- All Sub-Subjects --</option>
                     </select>
@@ -267,46 +290,36 @@
             </div>
             <div class="row">
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>Search ID / Code / Text:</label>
-                    <input type="text" id="filter-search" placeholder="e.g., PSAD-SIT-001 or keywords..." oninput="renderQuestionBankTable()">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Filter by Situational Status:</label>
-                    <select id="filter-situational" onchange="renderQuestionBankTable()">
-                        <option value="">-- All Status --</option>
-                        <option value="Yes">Yes (Situational)</option>
-                        <option value="No">No (Standalone)</option>
-                    </select>
+                    <label>Search ID / Text:</label>
+                    <input type="text" id="filter-search" placeholder="Keywords..." oninput="renderQuestionBankTable()">
                 </div>
             </div>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <button type="button" onclick="exportDatabase()" style="background: #20639b; color:white; width: auto; padding: 8px 15px; font-size: 14px; border:none; border-radius:4px; cursor:pointer;">📥 Export as CSV</button>
-            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; width: auto; padding: 8px 15px; font-size: 14px; margin-left: 10px; border:none; border-radius:4px; cursor:pointer;">🗑️ Clear Supabase DB</button>
+        <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+            <button type="button" onclick="exportDatabase()" style="background: #20639b; color:white; padding: 8px 12px; font-size: 13px; border:none; border-radius:4px; cursor:pointer; flex:1;">📥 Export CSV</button>
+            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; padding: 8px 12px; font-size: 13px; border:none; border-radius:4px; cursor:pointer; flex:1;">🗑️ Clear DB</button>
         </div>
-        <table class="bank-table">
-            <thead><tr><th>Code / ID</th><th>Subject</th><th>Prompt / Situation</th><th>Actions</th></tr></thead>
-            <tbody id="bank-table-body"></tbody>
-        </table>
+        
+        <div class="table-responsive">
+            <table class="bank-table">
+                <thead><tr><th>Code / ID</th><th>Subject</th><th>Prompt</th><th>Actions</th></tr></thead>
+                <tbody id="bank-table-body"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-    // Initialize Supabase Client
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     let localDB = [];
 
-    // Load Database from Supabase table on startup
     async function loadDatabaseFromSupabase() {
         const { data, error } = await supabaseClient.from('questions').select('*');
-        if (error) {
-            console.error('Error loading questions from Supabase:', error);
-            return;
-        }
+        if (error) { console.error('Error loading questions:', error); return; }
         localDB = data || [];
         document.getElementById('bank-counter').innerText = localDB.length;
         renderQuestionBankTable();
@@ -315,9 +328,8 @@
 
     const subSubjectMap = {
         "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
-        "HGE": ["Hydraulics", "Geotechnical Engineering"],
-        "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"],
-        "Past CE Board Exam Problems": ["Board Exam Packet 1", "Board Exam Packet 2", "CE Licensure Examination Archive"]
+        "HPGE": ["Hydraulics", "Geotechnical Engineering"],
+        "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"]
     };
 
     function populateSubSubjects(mainId, subId, selectedValue = "") {
@@ -352,9 +364,7 @@
     let attachedSolutionImages = [];
     let activeFieldElement = document.getElementById('scenario-text');
 
-    function setActiveField(el) {
-        if (!el.id.includes('code')) activeFieldElement = el;
-    }
+    function setActiveField(el) { if (!el.id.includes('code')) activeFieldElement = el; }
 
     document.addEventListener('focusin', function(e) {
         if ((e.target.tagName === 'INPUT' && e.target.type === 'text') || e.target.tagName === 'TEXTAREA') {
@@ -364,6 +374,11 @@
 
     document.getElementById('scenario-text').addEventListener('input', updatePreview);
     document.getElementById('global-solution-text').addEventListener('input', updatePreview);
+
+    function toggleBoardDateFields() {
+        const isChecked = document.getElementById('is-past-board-situation').checked;
+        document.getElementById('board-date-container').style.display = isChecked ? 'flex' : 'none';
+    }
 
     function executeMathCommand(cmd) {
         let builder = document.getElementById('math-builder');
@@ -391,9 +406,7 @@
             let val = target.value;
             if (start !== undefined && end !== undefined && start !== end) {
                 target.value = val.substring(0, start) + s + val.substring(start, end) + e + val.substring(end);
-            } else {
-                target.value += s + e;
-            }
+            } else { target.value += s + e; }
             updatePreview();
         }
     }
@@ -460,29 +473,33 @@
         card.setAttribute('data-block-id', blockCounter);
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h4 style="margin-top:0; color:#003300;">Question #${container.children.length + 1}</h4>
-                <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:12px;">Remove Question</button>
+                <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #${container.children.length + 1}</h4>
+                <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
+            </div>
+            <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
+                    <input type="checkbox" class="q-is-past-board" ${qData && qData.isPastBoard ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
+                    ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                </label>
             </div>
             <div class="form-group">
-                <label>Specific Question Prompt:</label>
+                <label>Question Prompt:</label>
                 <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)">${qData ? qData.question : ''}</textarea>
             </div>
-            <label>Multiple Choice Options:</label>
+            <label>Options:</label>
             <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" value="${qData ? qData.options.A : ''}" onfocus="setActiveField(this)" required></div></div>
             <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" value="${qData ? qData.options.B : ''}" onfocus="setActiveField(this)" required></div></div>
             <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" value="${qData ? qData.options.C : ''}" onfocus="setActiveField(this)" required></div></div>
             <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" value="${qData ? qData.options.D : ''}" onfocus="setActiveField(this)" required></div></div>
 
-            <div class="row" style="margin-top: 15px;">
-                <div class="form-group">
-                    <label>Correct Answer:</label>
-                    <select class="q-correct">
-                        <option value="A" ${qData && qData.correct === 'A' ? 'selected' : ''}>Option A</option>
-                        <option value="B" ${!qData || qData.correct === 'B' ? 'selected' : ''}>Option B</option>
-                        <option value="C" ${qData && qData.correct === 'C' ? 'selected' : ''}>Option C</option>
-                        <option value="D" ${qData && qData.correct === 'D' ? 'selected' : ''}>Option D</option>
-                    </select>
-                </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Correct Answer:</label>
+                <select class="q-correct">
+                    <option value="A" ${qData && qData.correct === 'A' ? 'selected' : ''}>Option A</option>
+                    <option value="B" ${!qData || qData.correct === 'B' ? 'selected' : ''}>Option B</option>
+                    <option value="C" ${qData && qData.correct === 'C' ? 'selected' : ''}>Option C</option>
+                    <option value="D" ${qData && qData.correct === 'D' ? 'selected' : ''}>Option D</option>
+                </select>
             </div>
         `;
         container.appendChild(card);
@@ -523,9 +540,9 @@
             const optD = block.querySelector('.q-opt-d').value || "D";
 
             let qDiv = document.createElement('div');
-            qDiv.style.cssText = "margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;";
+            qDiv.style.cssText = "margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;";
             qDiv.innerHTML = `
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">
                     Question ${index + 1}: ${qText.replace(/\n/g, '<br>')}
                 </div>
                 <div class="choices-preview">
@@ -557,6 +574,9 @@
         const main = document.getElementById('main-subject').value;
         const sub = document.getElementById('sub-subject').value;
         const isSit = document.getElementById('is-situational').value;
+        const isPastBoardSituation = document.getElementById('is-past-board-situation').checked;
+        const boardMonth = document.getElementById('board-month').value;
+        const boardYear = document.getElementById('board-year').value;
         const codeId = isSit ? document.getElementById('situation-code').value : document.getElementById('standalone-code').value;
         
         if (!codeId) return alert("Please enter a Situation ID / Code or Question ID.");
@@ -569,6 +589,7 @@
         blocks.forEach((block) => {
             questionsArray.push({
                 question: block.querySelector('.q-text').value,
+                isPastBoard: isPastBoardSituation || block.querySelector('.q-is-past-board').checked,
                 options: { 
                     A: block.querySelector('.q-opt-a').value, 
                     B: block.querySelector('.q-opt-b').value, 
@@ -584,6 +605,9 @@
             main: main,
             sub: sub,
             isSituational: isSit,
+            isPastBoard: isPastBoardSituation,
+            boardMonth: boardMonth,
+            boardYear: boardYear,
             scenario: scenario,
             solution: globalSolution,
             images: [...attachedImages],
@@ -592,12 +616,8 @@
             appearances: 0
         };
 
-        // Upsert record directly to Supabase table
         const { error } = await supabaseClient.from('questions').upsert(recordData);
-        if (error) {
-            alert("Error saving to Supabase: " + error.message);
-            return;
-        }
+        if (error) { alert("Error saving to Supabase: " + error.message); return; }
 
         showAlert("Successfully saved to Supabase repository!");
         await loadDatabaseFromSupabase();
@@ -607,17 +627,25 @@
     function resetCreatorForm() {
         document.getElementById('question-form').reset();
         document.getElementById('edit-mode-id').value = "";
-        document.getElementById('save-btn-label').innerText = "✅ Save & Finish to Supabase";
+        document.getElementById('save-btn-label').innerText = "✅ Save to Supabase";
+        document.getElementById('is-past-board-situation').checked = false;
+        document.getElementById('board-date-container').style.display = 'none';
         document.getElementById('question-blocks-container').innerHTML = `
             <div class="question-block-card" data-block-id="1">
-                <h4 style="margin-top:0; color:#003300;">Question #1</h4>
-                <div class="form-group"><label>Specific Question Prompt:</label><textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea></div>
-                <label>Multiple Choice Options:</label>
+                <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #1</h4>
+                <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
+                        <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
+                        ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                    </label>
+                </div>
+                <div class="form-group"><label>Question Prompt:</label><textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea></div>
+                <label>Options:</label>
                 <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
                 <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
                 <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
                 <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
-                <div class="row" style="margin-top: 15px;"><div class="form-group"><label>Correct Answer:</label><select class="q-correct"><option value="A">Option A</option><option value="B" selected>Option B</option><option value="C">Option C</option><option value="D">Option D</option></select></div></div>
+                <div class="form-group" style="margin-top: 10px;"><label>Correct Answer:</label><select class="q-correct"><option value="A">Option A</option><option value="B" selected>Option B</option><option value="C">Option C</option><option value="D">Option D</option></select></div>
             </div>
         `;
         blockCounter = 1;
@@ -640,6 +668,10 @@
         document.getElementById('main-subject').value = record.main;
         populateSubSubjects('main-subject', 'sub-subject', record.sub);
         document.getElementById('is-situational').value = record.isSituational;
+        document.getElementById('is-past-board-situation').checked = record.isPastBoard || false;
+        document.getElementById('board-month').value = record.boardMonth || '';
+        document.getElementById('board-year').value = record.boardYear || '';
+        toggleBoardDateFields();
         toggleScenario();
 
         if (record.isSituational === 'Yes') {
@@ -660,9 +692,7 @@
         blockCounter = 0;
         if (record.questions && record.questions.length > 0) {
             record.questions.forEach(q => addNewQuestionBlock(q));
-        } else {
-            addNewQuestionBlock();
-        }
+        } else { addNewQuestionBlock(); }
 
         switchTab('creator');
         showAlert("Loaded record into Question Creator for editing.");
@@ -681,12 +711,10 @@
         const filterMain = document.getElementById('filter-main').value;
         const filterSub = document.getElementById('filter-sub').value;
         const filterSearch = document.getElementById('filter-search').value.toLowerCase();
-        const filterSituational = document.getElementById('filter-situational').value;
 
         let filteredDB = localDB.filter(q => {
             if (filterMain && q.main !== filterMain) return false;
             if (filterSub && q.sub !== filterSub) return false;
-            if (filterSituational && q.isSituational !== filterSituational) return false;
             if (filterSearch) {
                 let matchId = q.id.toLowerCase().includes(filterSearch);
                 let matchQ = q.questions.some(item => item.question.toLowerCase().includes(filterSearch));
@@ -702,7 +730,9 @@
         }
 
         filteredDB.forEach((q) => {
-            let displayPrompt = q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '');
+            let dateStr = (q.boardMonth && q.boardYear) ? ` (${q.boardMonth} ${q.boardYear})` : '';
+            let badge = q.isPastBoard ? ` <span style="color:#d9822b; font-weight:bold;">[⭐ Past Board${dateStr}]</span>` : '';
+            let displayPrompt = (q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '')) + badge;
             let tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${q.id}</strong></td>
@@ -710,7 +740,7 @@
                 <td>${displayPrompt}</td>
                 <td class="action-btns">
                     <button type="button" class="btn-edit" onclick="editRecord('${q.id}')">✏️ Edit</button>
-                    <button type="button" class="btn-delete" onclick="deleteRecord('${q.id}')">🗑 Delete</button>
+                    <button type="button" class="btn-delete" onclick="deleteRecord('${q.id}')">🗑 Del</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -722,10 +752,7 @@
     async function deleteRecord(recordId) {
         if (confirm("Delete this record from Supabase?")) { 
             const { error } = await supabaseClient.from('questions').delete().eq('id', recordId);
-            if (error) {
-                alert("Error deleting: " + error.message);
-                return;
-            }
+            if (error) { alert("Error deleting: " + error.message); return; }
             await loadDatabaseFromSupabase();
         }
     }
@@ -733,18 +760,15 @@
     async function clearEntireDatabase() {
         if (confirm("WARNING: This will delete ALL questions from the Supabase database. Are you sure?")) { 
             const { error } = await supabaseClient.from('questions').delete().neq('id', '');
-            if (error) {
-                alert("Error clearing database: " + error.message);
-                return;
-            }
+            if (error) { alert("Error clearing database: " + error.message); return; }
             await loadDatabaseFromSupabase();
         }
     }
 
     function exportDatabase() {
-        let csv = "ID,Main_Subject,Sub_Subject,Is_Situational,Situation,Questions_Count\n";
+        let csv = "ID,Main_Subject,Sub_Subject,Is_Situational,Is_Past_Board,Board_Month,Board_Year,Situation,Questions_Count\n";
         localDB.forEach(q => {
-            let row = [ q.id, q.main, q.sub, q.isSituational, `"${q.scenario || ''}"`, q.questions.length ];
+            let row = [ q.id, q.main, q.sub, q.isSituational, q.isPastBoard || false, q.boardMonth || '', q.boardYear || '', `"${q.scenario || ''}"`, q.questions.length ];
             csv += row.join(",") + "\n";
         });
         const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
