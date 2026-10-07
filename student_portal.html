@@ -1,590 +1,572 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Innovations - CE Student Portal</title>
-    
-    <!-- KaTeX for Text & Math Rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Innovations - CE Student Portal</title>
 
-    <!-- Supabase JS Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <style>
-        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
-        
-        /* Auth Overlay Styles */
-        #auth-container { max-width: 420px; margin: 80px auto; background: white; padding: 35px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); text-align: center; }
-        #auth-container h2 { color: #003300; margin-top: 0; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 15px; }
-        .auth-btn { width: 100%; padding: 12px; background: #003300; color: #ccff00; border: none; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .auth-btn:hover { background: #004d00; }
-        .microsoft-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; background: #2f2f2f; color: white; border: none; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
-        .microsoft-btn:hover { background: #1f1f1f; }
-        #auth-error { color: #d9534f; margin-top: 15px; font-size: 14px; }
-        
-        .logout-btn { background: #d9534f; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+<!-- KaTeX for Text & Math Rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
 <style>
-        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
-        
-        /* RI Navbar Header matching official branding */
-        .ri-navbar {
-            background-color: #003300;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            height: 70px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            gap: 20px;
-        }
+body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
 
-        /* Official RI Logo Image Styling */
-        .ri-logo-img {
-            height: 50px;
-            width: auto;
-            border-radius: 4px;
-            border: 1px solid #ccff00;
-            object-fit: contain;
-        }
+/* RI Navbar Header matching official branding */
+.ri-navbar {
+background-color: #003300;
+display: flex;
+align-items: center;
+padding: 0 20px;
+height: 70px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+gap: 20px;
+}
 
-        /* Navigation Tabs */
-        .nav-tabs { display: flex; align-items: center; height: 100%; gap: 5px; }
-        .nav-tab {
-            padding: 0 18px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-weight: bold;
-            color: #ffffff;
-            font-size: 15px;
-            background: transparent;
-            transition: 0.2s;
-            border-top: 4px solid transparent;
-        }
-        .nav-tab:hover { background: rgba(255,255,255,0.05); }
-        .nav-tab.active {
-            background: #1e5223;
-            color: #ffffff;
-            border-top: 4px solid #ccff00;
-            border-radius: 4px 4px 0 0;
-        }
+/* Official RI Logo Image Styling */
+.ri-logo-img {
+height: 50px;
+width: auto;
+border-radius: 4px;
+border: 1px solid #ccff00;
+object-fit: contain;
+}
 
-        .container { max-width: 950px; margin: 25px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+/* Navigation Tabs */
+.nav-tabs { display: flex; align-items: center; height: 100%; gap: 5px; }
+.nav-tab {
+padding: 0 18px;
+height: 100%;
+display: flex;
+align-items: center;
+cursor: pointer;
+font-weight: bold;
+color: #ffffff;
+font-size: 15px;
+background: transparent;
+transition: 0.2s;
+border-top: 4px solid transparent;
+}
+.nav-tab:hover { background: rgba(255,255,255,0.05); }
+.nav-tab.active {
+background: #1e5223;
+color: #ffffff;
+border-top: 4px solid #ccff00;
+border-radius: 4px 4px 0 0;
+}
 
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #003300; }
-        select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
-        .row { display: flex; gap: 15px; }
-        .row .form-group { flex: 1; }
+.container { max-width: 950px; margin: 25px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-        .card { background: #f8f9fa; border: 1px solid #dcdcdc; padding: 20px; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .timer-badge { background: #ff9800; color: white; padding: 8px 15px; font-size: 16px; font-weight: bold; border-radius: 4px; display: inline-block; float: right; }
-        
-        button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
-        button.primary-btn:hover { background: #004d00; }
-        button.action-btn { background: #20639b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; }
-        button.action-btn:hover { background: #174a75; }
+.form-group { margin-bottom: 18px; }
+label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #003300; }
+select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
+.row { display: flex; gap: 15px; }
+.row .form-group { flex: 1; }
 
-        .student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-        
-        /* Choice Styling with Highlight State and Hidden Radio Circles */
-        .choice-item { 
-            display: block; 
-            font-weight: normal; 
-            margin: 10px 0; 
-            cursor: pointer; 
-            background: #fafafa; 
-            padding: 12px 15px; 
-            border: 1px solid #ddd; 
-            border-radius: 4px; 
-            transition: all 0.2s ease; 
-        }
-        .choice-item:hover { background: #f0f7f0; border-color: #003300; }
-        .choice-item.selected-highlight { 
-            background: #e8f5e9; 
-            border-color: #2e7d32; 
-            font-weight: bold; 
-            color: #003300; 
-            box-shadow: inset 3px 0 0 #2e7d32; 
-        }
-        .choice-item input[type="radio"] { 
-            display: none; 
-        }
+.card { background: #f8f9fa; border: 1px solid #dcdcdc; padding: 20px; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+.timer-badge { background: #ff9800; color: white; padding: 8px 15px; font-size: 16px; font-weight: bold; border-radius: 4px; display: inline-block; float: right; }
 
-        .solution-box { background: #e8f5e9; padding: 15px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
+button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
+button.primary-btn:hover { background: #004d00; }
+button.action-btn { background: #20639b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; }
+button.action-btn:hover { background: #174a75; }
 
-        table.bank-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        table.bank-table th { background: #003300; color: white; }
-    </style>
+.student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+
+/* Choice Styling with Highlight State and Hidden Radio Circles */
+.choice-item { 
+display: block; 
+font-weight: normal; 
+margin: 10px 0; 
+cursor: pointer; 
+background: #fafafa; 
+padding: 12px 15px; 
+border: 1px solid #ddd; 
+border-radius: 4px; 
+transition: all 0.2s ease; 
+}
+.choice-item:hover { background: #f0f7f0; border-color: #003300; }
+.choice-item.selected-highlight { 
+background: #e8f5e9; 
+border-color: #2e7d32; 
+font-weight: bold; 
+color: #003300; 
+box-shadow: inset 3px 0 0 #2e7d32; 
+}
+.choice-item input[type="radio"] { 
+display: none; 
+}
+
+.solution-box { background: #e8f5e9; padding: 15px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
+
+table.bank-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+table.bank-table th { background: #003300; color: white; }
+</style>
 </head>
 <body>
 
-    <!-- RI NAVIGATION HEADER WITH EXACT LOGO IMAGE -->
-    <div class="ri-navbar">
+<!-- RI NAVIGATION HEADER WITH EXACT LOGO IMAGE -->
+<div class="ri-navbar">
         <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
-        <div class="nav-tabs">
-            <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
-            <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
-            <div class="nav-tab" onclick="switchTab('history', this)">Progress & History</div>
-        </div>
-    </div>
+<div class="nav-tabs">
+<div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
+<div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
+<div class="nav-tab" onclick="switchTab('history', this)">Progress & History</div>
+</div>
+</div>
 
 <div class="container">
-    
-    <!-- TAB: DASHBOARD -->
-    <div id="dashboard-tab" class="tab-content active">
-        <h2>Daily Challenge</h2>
-        <p>Your daily randomized problem challenge is ready below.</p>
 
-        <div class="card" id="daily-challenge-card">
-            <h3>⭐ Problem of the Day (<span id="daily-subject-tag">MSTC</span>)</h3>
-            <div id="daily-problem-container">Loading daily challenge...</div>
-        </div>
-    </div>
+<!-- TAB: DASHBOARD -->
+<div id="dashboard-tab" class="tab-content active">
+<h2>Daily Challenge</h2>
+<p>Your daily randomized problem challenge is ready below.</p>
 
-    <!-- TAB: GENERATE QUIZ -->
-    <div id="generator-tab" class="tab-content">
-        <h2>Custom Quiz Generator</h2>
-        <div class="card">
-            <div class="row">
-                <div class="form-group">
-                    <label>Main Subject:</label>
-                    <select id="gen-main" onchange="updateGenSubSubjects()">
-                        <option value="ALL">All Subjects</option>
-                        <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
-                        <option value="PSAD">PSAD (Principles of Structures & Design)</option>
-                        <option value="HGE">HPGE (Hydraulics & Geotechnical)</option>
-                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Sub-Subject:</label>
-                    <select id="gen-sub">
-                        <option value="ALL">All Sub-Subjects</option>
-                    </select>
-                </div>
-            </div>
+<div class="card" id="daily-challenge-card">
+<h3>⭐ Problem of the Day (<span id="daily-subject-tag">MSTC</span>)</h3>
+<div id="daily-problem-container">Loading daily challenge...</div>
+</div>
+</div>
 
-            <div class="row">
-                <div class="form-group">
-                    <label>Number of Items:</label>
-                    <select id="gen-count" onchange="toggleCustomCount()">
-                        <option value="15">15 Items</option>
-                        <option value="30" selected>30 Items</option>
-                        <option value="50">50 Items</option>
-                        <option value="75">75 Items</option>
-                        <option value="custom">Custom Number</option>
-                    </select>
-                </div>
-                <div class="form-group" id="custom-count-group" style="display:none;">
-                    <label>Custom Quantity:</label>
-                    <input type="number" id="gen-custom-input" value="20" min="1" max="200">
-                </div>
-                <div class="form-group">
-                    <label>Time Limit (Minutes):</label>
-                    <input type="text" id="gen-time" placeholder="Default: 4 mins/item (Auto)" value="Default">
-                    <small style="color:#666;">Leave as 'Default' for 4 mins per question.</small>
-                </div>
-            </div>
+<!-- TAB: GENERATE QUIZ -->
+<div id="generator-tab" class="tab-content">
+<h2>Custom Quiz Generator</h2>
+<div class="card">
+<div class="row">
+<div class="form-group">
+<label>Main Subject:</label>
+<select id="gen-main" onchange="updateGenSubSubjects()">
+<option value="ALL">All Subjects</option>
+<option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
+<option value="PSAD">PSAD (Principles of Structures & Design)</option>
+<option value="HGE">HPGE (Hydraulics & Geotechnical)</option>
+<option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
+</select>
+</div>
+<div class="form-group">
+<label>Sub-Subject:</label>
+<select id="gen-sub">
+<option value="ALL">All Sub-Subjects</option>
+</select>
+</div>
+</div>
 
-            <button type="button" onclick="startCustomExam()" class="primary-btn">🚀 Start Timed Exam Session</button>
-        </div>
+<div class="row">
+<div class="form-group">
+<label>Number of Items:</label>
+<select id="gen-count" onchange="toggleCustomCount()">
+<option value="15">15 Items</option>
+<option value="30" selected>30 Items</option>
+<option value="50">50 Items</option>
+<option value="75">75 Items</option>
+<option value="custom">Custom Number</option>
+</select>
+</div>
+<div class="form-group" id="custom-count-group" style="display:none;">
+<label>Custom Quantity:</label>
+<input type="number" id="gen-custom-input" value="20" min="1" max="200">
+</div>
+<div class="form-group">
+<label>Time Limit (Minutes):</label>
+<input type="text" id="gen-time" placeholder="Default: 4 mins/item (Auto)" value="Default">
+<small style="color:#666;">Leave as 'Default' for 4 mins per question.</small>
+</div>
+</div>
 
-        <!-- ACTIVE EXAM CONTAINER -->
-        <div id="active-exam-container" style="display:none;">
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 id="exam-title-header">Exam Session</h3>
-                    <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
-                </div>
-                <div id="exam-questions-paper"></div>
-                <button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:20px;">✅ Submit Exam & View Solutions</button>
-            </div>
-        </div>
-    </div>
+<button type="button" onclick="startCustomExam()" class="primary-btn">🚀 Start Timed Exam Session</button>
+</div>
 
-    <!-- TAB: PROGRESS & HISTORY -->
-    <div id="history-tab" class="tab-content">
-        <h2>Performance History & Analytics</h2>
-        <div class="card">
-            <p>Track your past exam scores, review previous attempts, or retake past exams.</p>
-            <div id="history-records-container">No exam history recorded yet. Take an exam to build stats!</div>
-        </div>
-    </div>
+<!-- ACTIVE EXAM CONTAINER -->
+<div id="active-exam-container" style="display:none;">
+<div class="card">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+<h3 id="exam-title-header">Exam Session</h3>
+<div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
+</div>
+<div id="exam-questions-paper"></div>
+<button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:20px;">✅ Submit Exam & View Solutions</button>
+</div>
+</div>
+</div>
+
+<!-- TAB: PROGRESS & HISTORY -->
+<div id="history-tab" class="tab-content">
+<h2>Performance History & Analytics</h2>
+<div class="card">
+<p>Track your past exam scores, review previous attempts, or retake past exams.</p>
+<div id="history-records-container">No exam history recorded yet. Take an exam to build stats!</div>
+</div>
+</div>
 
 </div>
 
 <script>
-    const subSubjectMap = {
-        "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
-        "HGE": ["Hydraulics", "Geotechnical Engineering"],
-        "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"],
-        "Past CE Board Exam Problems": ["Board Exam Packet 1", "Board Exam Packet 2", "CE Licensure Examination Archive"]
-    };
+const subSubjectMap = {
+"PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
+"HGE": ["Hydraulics", "Geotechnical Engineering"],
+"MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"],
+"Past CE Board Exam Problems": ["PSAD", "MSTC", "HPGE"]
+};
 
-    function updateGenSubSubjects() {
-        const main = document.getElementById('gen-main').value;
-        const sub = document.getElementById('gen-sub');
-        sub.innerHTML = '<option value="ALL">All Sub-Subjects</option>';
-        if (subSubjectMap[main]) {
-            subSubjectMap[main].forEach(s => {
-                let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
-                sub.appendChild(opt);
-            });
-        }
-    }
+function updateGenSubSubjects() {
+const main = document.getElementById('gen-main').value;
+const sub = document.getElementById('gen-sub');
+sub.innerHTML = '<option value="ALL">All Sub-Subjects</option>';
+if (subSubjectMap[main]) {
+subSubjectMap[main].forEach(s => {
+let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
+sub.appendChild(opt);
+});
+}
+}
 
-    let localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
-    let activeExamTimer = null;
+let localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
+let activeExamTimer = null;
 
-    function switchTab(tabName, clickedTab) {
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        if (clickedTab) clickedTab.classList.add('active');
-        
-        if (tabName === 'dashboard') {
-            document.getElementById('dashboard-tab').classList.add('active');
-            loadDailyChallenge();
-        } else if (tabName === 'generator') {
-            document.getElementById('generator-tab').classList.add('active');
-        } else if (tabName === 'history') {
-            document.getElementById('history-tab').classList.add('active');
-            renderExamHistory();
-        }
-    }
+function switchTab(tabName, clickedTab) {
+document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-    // --- HELPER: RANDOMIZE CHOICES ---
-    function randomizeChoices(q) {
-        let originalCorrectText = q.options[q.correct];
-        let keys = ['A', 'B', 'C', 'D'];
-        let shuffledKeys = [...keys].sort(() => 0.5 - Math.random());
+if (clickedTab) clickedTab.classList.add('active');
 
-        let newOptions = {};
-        let newCorrectKey = '';
+if (tabName === 'dashboard') {
+document.getElementById('dashboard-tab').classList.add('active');
+loadDailyChallenge();
+} else if (tabName === 'generator') {
+document.getElementById('generator-tab').classList.add('active');
+} else if (tabName === 'history') {
+document.getElementById('history-tab').classList.add('active');
+renderExamHistory();
+}
+}
 
-        shuffledKeys.forEach((oldKey, newIdx) => {
-            let assignedKey = keys[newIdx];
-            newOptions[assignedKey] = q.options[oldKey];
-            if (q.options[oldKey] === originalCorrectText) {
-                newCorrectKey = assignedKey;
-            }
-        });
+// --- HELPER: RANDOMIZE CHOICES ---
+function randomizeChoices(q) {
+let originalCorrectText = q.options[q.correct];
+let keys = ['A', 'B', 'C', 'D'];
+let shuffledKeys = [...keys].sort(() => 0.5 - Math.random());
 
-        return {
-            ...q,
-            options: newOptions,
-            correct: newCorrectKey
-        };
-    }
+let newOptions = {};
+let newCorrectKey = '';
 
-    // --- CHOICE HIGHLIGHT LISTENER HELPER ---
-    function setupChoiceHighlighting(containerElement) {
-        containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const name = e.target.name;
-                document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-                    r.closest('.choice-item').classList.remove('selected-highlight');
-                });
-                if (e.target.checked) {
-                    e.target.closest('.choice-item').classList.add('selected-highlight');
-                }
-            });
-        });
-    }
+shuffledKeys.forEach((oldKey, newIdx) => {
+let assignedKey = keys[newIdx];
+newOptions[assignedKey] = q.options[oldKey];
+if (q.options[oldKey] === originalCorrectText) {
+newCorrectKey = assignedKey;
+}
+});
 
-    // --- DAILY CHALLENGE ROTATION ---
-    function loadDailyChallenge() {
-        const container = document.getElementById('daily-problem-container');
-        localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
-        if (localDB.length === 0) {
-            container.innerHTML = "No questions available in the question bank yet.";
-            return;
-        }
+return {
+...q,
+options: newOptions,
+correct: newCorrectKey
+};
+}
 
-        let availableSubjects = [...new Set(localDB.map(r => r.main))];
-        if (availableSubjects.length === 0) availableSubjects = ['MSTC', 'PSAD', 'HGE', 'Past CE Board Exam Problems'];
+// --- CHOICE HIGHLIGHT LISTENER HELPER ---
+function setupChoiceHighlighting(containerElement) {
+containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
+radio.addEventListener('change', (e) => {
+const name = e.target.name;
+document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+r.closest('.choice-item').classList.remove('selected-highlight');
+});
+if (e.target.checked) {
+e.target.closest('.choice-item').classList.add('selected-highlight');
+}
+});
+});
+}
 
-        const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % availableSubjects.length;
-        const targetSubject = availableSubjects[dayIndex];
-        document.getElementById('daily-subject-tag').innerText = targetSubject;
+// --- DAILY CHALLENGE ROTATION ---
+function loadDailyChallenge() {
+const container = document.getElementById('daily-problem-container');
+localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
+if (localDB.length === 0) {
+container.innerHTML = "No questions available in the question bank yet.";
+return;
+}
 
-        let pool = localDB.filter(rec => rec.main === targetSubject);
-        if (pool.length === 0) {
-            pool = localDB.filter(rec => rec.main === availableSubjects[0]);
-            document.getElementById('daily-subject-tag').innerText = availableSubjects[0];
-        }
+let availableSubjects = [...new Set(localDB.map(r => r.main))];
+if (availableSubjects.length === 0) availableSubjects = ['MSTC', 'PSAD', 'HGE', 'Past CE Board Exam Problems'];
 
-        const record = pool[Math.floor(Math.random() * pool.length)];
-        let q = randomizeChoices(record.questions[0]);
-        
-        let imagesHtml = "";
-        if (record.images && record.images.length > 0) {
-            record.images.forEach(img => { imagesHtml += `<img src="${img}" class="student-image-display">`; });
-        }
+const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % availableSubjects.length;
+const targetSubject = availableSubjects[dayIndex];
+document.getElementById('daily-subject-tag').innerText = targetSubject;
 
-        container.innerHTML = `
-            <div style="font-weight:bold; margin-bottom:10px;">[${record.id}] ${record.main} / ${record.sub}</div>
-            ${record.scenario ? `<div style="background:#eef2f3; padding:10px; margin-bottom:10px; border-left:3px solid #003300;">${record.scenario}</div>` : ''}
-            ${imagesHtml}
-            <div style="margin-bottom:10px;">${q.question}</div>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="A"> A. ${q.options.A}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="B"> B. ${q.options.B}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="C"> C. ${q.options.C}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="D"> D. ${q.options.D}</label>
-            <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:15px; width:auto; padding:8px 20px;">Submit Answer</button>
-            <div id="daily-feedback" style="margin-top:15px; display:none;"></div>
-        `;
-        
-        setupChoiceHighlighting(container);
-        if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
-    }
+let pool = localDB.filter(rec => rec.main === targetSubject);
+if (pool.length === 0) {
+pool = localDB.filter(rec => rec.main === availableSubjects[0]);
+document.getElementById('daily-subject-tag').innerText = availableSubjects[0];
+}
 
-    function checkDailyAnswer(correctOpt) {
-        const selected = document.querySelector('input[name="daily_ans"]:checked');
-        const feedback = document.getElementById('daily-feedback');
-        feedback.style.display = 'block';
-        if (!selected) { feedback.innerHTML = "<span style='color:orange;'>Please select an option first.</span>"; return; }
-        
-        if (selected.value === correctOpt) {
-            feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
-        } else {
-            feedback.innerHTML = `<span style='color:red; font-weight:bold;'>❌ Incorrect. The correct answer was ${correctOpt}.</span>`;
-        }
-    }
+const record = pool[Math.floor(Math.random() * pool.length)];
+let q = randomizeChoices(record.questions[0]);
 
-    // --- CUSTOM EXAM GENERATOR ---
-    function toggleCustomCount() {
-        const count = document.getElementById('gen-count').value;
-        document.getElementById('custom-count-group').style.display = (count === 'custom') ? 'block' : 'none';
-    }
+let imagesHtml = "";
+if (record.images && record.images.length > 0) {
+record.images.forEach(img => { imagesHtml += `<img src="${img}" class="student-image-display">`; });
+}
 
-    function startCustomExam() {
-        localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
-        if (localDB.length === 0) return alert("Database is empty! Please add questions via admin panel first.");
-        
-        const main = document.getElementById('gen-main').value;
-        const sub = document.getElementById('gen-sub').value;
-        const countSelect = document.getElementById('gen-count').value;
-        const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
-        
-        let timeInput = document.getElementById('gen-time').value;
-        let timeMinutes = timeInput.toLowerCase() === 'default' || !timeInput ? totalItems * 4 : parseInt(timeInput);
+container.innerHTML = `
+           <div style="font-weight:bold; margin-bottom:10px;">[${record.id}] ${record.main} / ${record.sub}</div>
+           ${record.scenario ? `<div style="background:#eef2f3; padding:10px; margin-bottom:10px; border-left:3px solid #003300;">${record.scenario}</div>` : ''}
+           ${imagesHtml}
+           <div style="margin-bottom:10px;">${q.question}</div>
+           <label class="choice-item"><input type="radio" name="daily_ans" value="A"> A. ${q.options.A}</label>
+           <label class="choice-item"><input type="radio" name="daily_ans" value="B"> B. ${q.options.B}</label>
+           <label class="choice-item"><input type="radio" name="daily_ans" value="C"> C. ${q.options.C}</label>
+           <label class="choice-item"><input type="radio" name="daily_ans" value="D"> D. ${q.options.D}</label>
+           <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:15px; width:auto; padding:8px 20px;">Submit Answer</button>
+           <div id="daily-feedback" style="margin-top:15px; display:none;"></div>
+       `;
 
-        let pool = [];
-        if (main === 'ALL') {
-            pool = [...localDB];
-        } else {
-            pool = localDB.filter(r => r.main === main);
-            if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
-        }
+setupChoiceHighlighting(container);
+if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
+}
 
-        if (pool.length === 0) return alert("No questions available matching your selected category filters.");
+function checkDailyAnswer(correctOpt) {
+const selected = document.querySelector('input[name="daily_ans"]:checked');
+const feedback = document.getElementById('daily-feedback');
+feedback.style.display = 'block';
+if (!selected) { feedback.innerHTML = "<span style='color:orange;'>Please select an option first.</span>"; return; }
 
-        let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
-        shuffledPool.sort((a, b) => (a.appearances || 0) - (b.appearances || 0));
+if (selected.value === correctOpt) {
+feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
+} else {
+feedback.innerHTML = `<span style='color:red; font-weight:bold;'>❌ Incorrect. The correct answer was ${correctOpt}.</span>`;
+}
+}
 
-        let selectedRecords = [];
-        let accumulatedQuestionsCount = 0;
+// --- CUSTOM EXAM GENERATOR ---
+function toggleCustomCount() {
+const count = document.getElementById('gen-count').value;
+document.getElementById('custom-count-group').style.display = (count === 'custom') ? 'block' : 'none';
+}
 
-        for (let record of shuffledPool) {
-            if (accumulatedQuestionsCount >= totalItems) break;
-            selectedRecords.push(record);
-            accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
-            record.appearances = (record.appearances || 0) + 1;
-        }
+function startCustomExam() {
+localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
+if (localDB.length === 0) return alert("Database is empty! Please add questions via admin panel first.");
 
-        if (selectedRecords.length === 0) return alert("No questions available matching your filters.");
+const main = document.getElementById('gen-main').value;
+const sub = document.getElementById('gen-sub').value;
+const countSelect = document.getElementById('gen-count').value;
+const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
 
-        let examId = 'EXAM_' + Date.now();
-        renderActiveExam(selectedRecords, timeMinutes, examId, `Custom Quiz (${main} - ${accumulatedQuestionsCount} Items)`);
-    }
+let timeInput = document.getElementById('gen-time').value;
+let timeMinutes = timeInput.toLowerCase() === 'default' || !timeInput ? totalItems * 4 : parseInt(timeInput);
 
-    let currentExamSession = null;
+let pool = [];
+if (main === 'ALL') {
+pool = [...localDB];
+} else {
+pool = localDB.filter(r => r.main === main);
+if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
+}
 
-    function renderActiveExam(records, timeMinutes, examId, examTitle) {
-        currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
-        
-        document.getElementById('active-exam-container').style.display = 'block';
-        document.getElementById('exam-title-header').innerText = examTitle;
+if (pool.length === 0) return alert("No questions available matching your selected category filters.");
 
-        const paper = document.getElementById('exam-questions-paper');
-        paper.innerHTML = "";
+let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
+shuffledPool.sort((a, b) => (a.appearances || 0) - (b.appearances || 0));
 
-        let questionFlattenList = [];
-        let globalRenderIdx = 1;
+let selectedRecords = [];
+let accumulatedQuestionsCount = 0;
 
-        records.forEach((record) => {
-            let cardDiv = document.createElement('div');
-            cardDiv.className = 'card';
-            cardDiv.style.marginBottom = "25px";
+for (let record of shuffledPool) {
+if (accumulatedQuestionsCount >= totalItems) break;
+selectedRecords.push(record);
+accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
+record.appearances = (record.appearances || 0) + 1;
+}
 
-            let htmlContent = "";
-            if (record.isSituational === 'Yes') {
-                htmlContent += `<div style="background:#eef2f3; padding:12px; margin-bottom:15px; border-left:4px solid #003300;"><strong>Situation [${record.id}]:</strong><br>${record.scenario || ''}`;
-                if (record.images && record.images.length > 0) {
-                    record.images.forEach(img => { htmlContent += `<img src="${img}" class="student-image-display">`; });
-                }
-                htmlContent += `</div>`;
-            }
+if (selectedRecords.length === 0) return alert("No questions available matching your filters.");
 
-            record.questions.forEach((origQ, qIdx) => {
-                let q = randomizeChoices(origQ);
-                let currentGlobalIdx = questionFlattenList.length;
-                questionFlattenList.push({ record: record, q: q, globalIdx: currentGlobalIdx });
+let examId = 'EXAM_' + Date.now();
+renderActiveExam(selectedRecords, timeMinutes, examId, `Custom Quiz (${main} - ${accumulatedQuestionsCount} Items)`);
+}
 
-                let questionHeader = record.isSituational === 'Yes' 
-                    ? `Question ${globalRenderIdx++}` 
-                    : `Question ${globalRenderIdx++} (${record.id}) - <small>${record.main} / ${record.sub}</small>`;
+let currentExamSession = null;
 
-                htmlContent += `
-                    <div style="margin-bottom: 20px; padding-bottom: 15px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #ddd;' : ''}">
-                        <div style="font-weight:bold; margin-bottom:8px;">${questionHeader}</div>
-                        <div style="margin-bottom:10px;">${q.question}</div>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="D"> D. ${q.options.D}</label>
-                    </div>
-                `;
-            });
+function renderActiveExam(records, timeMinutes, examId, examTitle) {
+currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
 
-            htmlContent += `
-                <div id="solution_block_${record.id}" class="solution-box">
-                    <strong>Solution for ${record.isSituational === 'Yes' ? 'Situation [' + record.id + ']' : 'Question ' + record.id}:</strong><br>
-                    ${record.solution || 'No solution provided.'}
-                    <div id="sol_images_${record.id}" style="margin-top:10px;"></div>
-                </div>
-            `;
+document.getElementById('active-exam-container').style.display = 'block';
+document.getElementById('exam-title-header').innerText = examTitle;
 
-            cardDiv.innerHTML = htmlContent;
-            paper.appendChild(cardDiv);
+const paper = document.getElementById('exam-questions-paper');
+paper.innerHTML = "";
 
-            setupChoiceHighlighting(cardDiv);
+let questionFlattenList = [];
+let globalRenderIdx = 1;
 
-            if (record.solutionImages && record.solutionImages.length > 0) {
-                setTimeout(() => {
-                    let solImgContainer = document.getElementById(`sol_images_${record.id}`);
-                    if (solImgContainer) {
-                        record.solutionImages.forEach(sImg => {
-                            solImgContainer.innerHTML += `<img src="${sImg}" class="student-image-display">`;
-                        });
-                    }
-                }, 50);
-            }
-        });
+records.forEach((record) => {
+let cardDiv = document.createElement('div');
+cardDiv.className = 'card';
+cardDiv.style.marginBottom = "25px";
 
-        currentExamSession.flattenList = questionFlattenList;
-        localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
-        startTimer(timeMinutes * 60);
-        if (window.renderMathInElement) renderMathInElement(paper, { delimiters: [{left:'$', right:'$', display:false}] });
-        window.scrollTo({ top: 400, behavior: 'smooth' });
-    }
+let htmlContent = "";
+if (record.isSituational === 'Yes') {
+htmlContent += `<div style="background:#eef2f3; padding:12px; margin-bottom:15px; border-left:4px solid #003300;"><strong>Situation [${record.id}]:</strong><br>${record.scenario || ''}`;
+if (record.images && record.images.length > 0) {
+record.images.forEach(img => { htmlContent += `<img src="${img}" class="student-image-display">`; });
+}
+htmlContent += `</div>`;
+}
 
-    function startTimer(durationSeconds) {
-        if (activeExamTimer) clearInterval(activeExamTimer);
-        let timer = durationSeconds;
-        const badge = document.getElementById('exam-timer-badge');
+record.questions.forEach((origQ, qIdx) => {
+let q = randomizeChoices(origQ);
+let currentGlobalIdx = questionFlattenList.length;
+questionFlattenList.push({ record: record, q: q, globalIdx: currentGlobalIdx });
 
-        activeExamTimer = setInterval(() => {
-            let m = Math.floor(timer / 60);
-            let s = timer % 60;
-            badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            if (--timer < 0) {
-                clearInterval(activeExamTimer);
-                alert("Time's up! Submitting exam automatically.");
-                submitExam();
-            }
-        }, 1000);
-    }
+let questionHeader = record.isSituational === 'Yes' 
+? `Question ${globalRenderIdx++}` 
+: `Question ${globalRenderIdx++} (${record.id}) - <small>${record.main} / ${record.sub}</small>`;
 
-    function submitExam() {
-        if (!currentExamSession) return;
-        if (activeExamTimer) clearInterval(activeExamTimer);
+htmlContent += `
+                   <div style="margin-bottom: 20px; padding-bottom: 15px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #ddd;' : ''}">
+                       <div style="font-weight:bold; margin-bottom:8px;">${questionHeader}</div>
+                       <div style="margin-bottom:10px;">${q.question}</div>
+                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
+                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
+                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
+                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="D"> D. ${q.options.D}</label>
+                   </div>
+               `;
+});
 
-        let score = 0;
-        let total = currentExamSession.flattenList.length;
+htmlContent += `
+               <div id="solution_block_${record.id}" class="solution-box">
+                   <strong>Solution for ${record.isSituational === 'Yes' ? 'Situation [' + record.id + ']' : 'Question ' + record.id}:</strong><br>
+                   ${record.solution || 'No solution provided.'}
+                   <div id="sol_images_${record.id}" style="margin-top:10px;"></div>
+               </div>
+           `;
 
-        currentExamSession.flattenList.forEach((item, idx) => {
-            const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
-            let q = item.q;
-            q.stats = q.stats || { attempts: 0, correct: 0 };
-            q.stats.attempts++;
+cardDiv.innerHTML = htmlContent;
+paper.appendChild(cardDiv);
 
-            if (selected && selected.value === q.correct) {
-                score++;
-                q.stats.correct++;
-            }
-        });
+setupChoiceHighlighting(cardDiv);
 
-        let shownSolutionIds = new Set();
-        currentExamSession.flattenList.forEach(item => {
-            if (!shownSolutionIds.has(item.record.id)) {
-                shownSolutionIds.add(item.record.id);
-                let solBox = document.getElementById(`solution_block_${item.record.id}`);
-                if (solBox) solBox.style.display = 'block';
-            }
-        });
+if (record.solutionImages && record.solutionImages.length > 0) {
+setTimeout(() => {
+let solImgContainer = document.getElementById(`sol_images_${record.id}`);
+if (solImgContainer) {
+record.solutionImages.forEach(sImg => {
+solImgContainer.innerHTML += `<img src="${sImg}" class="student-image-display">`;
+});
+}
+}, 50);
+}
+});
 
-        localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
+currentExamSession.flattenList = questionFlattenList;
+localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
+startTimer(timeMinutes * 60);
+if (window.renderMathInElement) renderMathInElement(paper, { delimiters: [{left:'$', right:'$', display:false}] });
+window.scrollTo({ top: 400, behavior: 'smooth' });
+}
 
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        history.unshift({
-            examId: currentExamSession.examId,
-            examTitle: currentExamSession.examTitle,
-            records: currentExamSession.records,
-            date: new Date().toLocaleString(),
-            score: score,
-            total: total,
-            percentage: ((score / total) * 100).toFixed(1)
-        });
-        localStorage.setItem('ce_exam_history', JSON.stringify(history));
+function startTimer(durationSeconds) {
+if (activeExamTimer) clearInterval(activeExamTimer);
+let timer = durationSeconds;
+const badge = document.getElementById('exam-timer-badge');
 
-        alert(`Exam Submitted! Your Score: ${score} / ${total} (${((score/total)*100).toFixed(1)}%)`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+activeExamTimer = setInterval(() => {
+let m = Math.floor(timer / 60);
+let s = timer % 60;
+badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+if (--timer < 0) {
+clearInterval(activeExamTimer);
+alert("Time's up! Submitting exam automatically.");
+submitExam();
+}
+}, 1000);
+}
 
-    function retakeExam(index) {
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        let recordEntry = history[index];
-        if (!recordEntry || !recordEntry.records) return alert("Could not load exam for retake.");
+function submitExam() {
+if (!currentExamSession) return;
+if (activeExamTimer) clearInterval(activeExamTimer);
 
-        switchTab('generator', document.querySelectorAll('.nav-tab')[1]);
-        renderActiveExam(recordEntry.records, recordEntry.total * 4, 'EXAM_' + Date.now(), `Retake: ${recordEntry.examTitle}`);
-    }
+let score = 0;
+let total = currentExamSession.flattenList.length;
 
-    // --- PROGRESS & HISTORY ---
-    function renderExamHistory() {
-        const container = document.getElementById('history-records-container');
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        if (history.length === 0) { container.innerHTML = "No exam history recorded yet."; return; }
+currentExamSession.flattenList.forEach((item, idx) => {
+const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
+let q = item.q;
+q.stats = q.stats || { attempts: 0, correct: 0 };
+q.stats.attempts++;
 
-        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>Percentage</th><th>Action</th></tr></thead><tbody>`;
-        history.forEach((h, idx) => {
-            html += `
-                <tr>
-                    <td>${h.date}</td>
-                    <td>${h.examTitle || 'Custom Quiz'}</td>
-                    <td><strong>${h.score} / ${h.total}</strong></td>
-                    <td>${h.percentage}%</td>
-                    <td><button type="button" class="action-btn" onclick="retakeExam(${idx})">🔄 Retake Exam</button></td>
-                </tr>
-            `;
-        });
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-    }
+if (selected && selected.value === q.correct) {
+score++;
+q.stats.correct++;
+}
+});
 
-    // Initialize dashboard on load
-    loadDailyChallenge();
+let shownSolutionIds = new Set();
+currentExamSession.flattenList.forEach(item => {
+if (!shownSolutionIds.has(item.record.id)) {
+shownSolutionIds.add(item.record.id);
+let solBox = document.getElementById(`solution_block_${item.record.id}`);
+if (solBox) solBox.style.display = 'block';
+}
+});
+
+localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
+
+let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
+history.unshift({
+examId: currentExamSession.examId,
+examTitle: currentExamSession.examTitle,
+records: currentExamSession.records,
+date: new Date().toLocaleString(),
+score: score,
+total: total,
+percentage: ((score / total) * 100).toFixed(1)
+});
+localStorage.setItem('ce_exam_history', JSON.stringify(history));
+
+alert(`Exam Submitted! Your Score: ${score} / ${total} (${((score/total)*100).toFixed(1)}%)`);
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function retakeExam(index) {
+let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
+let recordEntry = history[index];
+if (!recordEntry || !recordEntry.records) return alert("Could not load exam for retake.");
+
+switchTab('generator', document.querySelectorAll('.nav-tab')[1]);
+renderActiveExam(recordEntry.records, recordEntry.total * 4, 'EXAM_' + Date.now(), `Retake: ${recordEntry.examTitle}`);
+}
+
+// --- PROGRESS & HISTORY ---
+function renderExamHistory() {
+const container = document.getElementById('history-records-container');
+let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
+if (history.length === 0) { container.innerHTML = "No exam history recorded yet."; return; }
+
+let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>Percentage</th><th>Action</th></tr></thead><tbody>`;
+history.forEach((h, idx) => {
+html += `
+               <tr>
+                   <td>${h.date}</td>
+                   <td>${h.examTitle || 'Custom Quiz'}</td>
+                   <td><strong>${h.score} / ${h.total}</strong></td>
+                   <td>${h.percentage}%</td>
+                   <td><button type="button" class="action-btn" onclick="retakeExam(${idx})">🔄 Retake Exam</button></td>
+               </tr>
+           `;
+});
+html += `</tbody></table>`;
+container.innerHTML = html;
+}
+
+// Initialize dashboard on load
+loadDailyChallenge();
 </script>
 </body>
 </html>
