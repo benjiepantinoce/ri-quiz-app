@@ -75,7 +75,7 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, equal and reduced width on desktop/landscape */
+/* Responsive image display: full-width on mobile, uniform fixed width on desktop/landscape for perfect alignment */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -89,8 +89,8 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        width: auto;
-        max-width: 378px; 
+        width: 378px;
+        max-width: 100%; 
         max-height: 315px;
         object-fit: contain;
     }
@@ -507,10 +507,11 @@ table.bank-table th { background: #003300; color: white; }
                 `;
             });
 
+            let solutionTextHtml = record.solution ? `${record.solution}<br>` : '';
             htmlContent += `
                 <div id="solution_block_${record.id}" class="solution-box">
                     <strong>Solution for ${record.isSituational === 'Yes' ? 'Situation [' + record.id + ']' : 'Question ' + record.id}:</strong><br>
-                    ${record.solution || 'No solution provided.'}
+                    ${solutionTextHtml}
                     <div id="sol_images_${record.id}" style="margin-top:10px;"></div>
                 </div>
             `;
