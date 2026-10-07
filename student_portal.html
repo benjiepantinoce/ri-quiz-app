@@ -330,7 +330,16 @@ table.bank-table th { background: #003300; color: white; }
 <script>
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Supabase client initialization with PKCE flow enabled
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
+        auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+        }
+    });
 
     let localDB = [];
 
@@ -370,7 +379,11 @@ table.bank-table th { background: #003300; color: white; }
     async function loginWithMicrosoft() {
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
-            options: { scopes: 'email profile' }
+            options: {
+                scopes: 'email profile',
+                // Explicitly targeting the GitHub Pages sub-path to prevent root domain 404s
+                redirectTo: 'https://benjiepantinoce.github.io/ri-quiz-app/'
+            }
         });
         if (error) document.getElementById('auth-error-msg').innerText = error.message;
     }
@@ -404,7 +417,16 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Handle Supabase OAuth return hash tokens automatically
+        // Intercept OAuth hash tokens directly to prevent GitHub Pages routing issues
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data && data.session) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                enterPortalApp();
+                return;
+            }
+        }
+
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
@@ -419,6 +441,7 @@ table.bank-table th { background: #003300; color: white; }
         localStorage.removeItem('ri_student_code_session');
         document.getElementById('main-portal-app').style.display = 'none';
         document.getElementById('auth-wrapper').style.display = 'flex';
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     // Run session check on load
@@ -489,332 +512,4 @@ table.bank-table th { background: #003300; color: white; }
     function switchTab(tabName, clickedTab) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        if (clickedTab && !clickedTab.innerText.includes('Logout')) clickedTab.classList.add('active');
-        
-        if (tabName === 'dashboard') {
-            document.getElementById('dashboard-tab').classList.add('active');
-            loadDailyChallenge();
-        } else if (tabName === 'generator') {
-            document.getElementById('generator-tab').classList.add('active');
-        } else if (tabName === 'history') {
-            document.getElementById('history-tab').classList.add('active');
-            renderExamHistory();
-        }
-    }
-
-    function randomizeChoices(q) {
-        let originalCorrectText = q.options[q.correct];
-        let keys = ['A', 'B', 'C', 'D'];
-        let shuffledKeys = [...keys].sort(() => 0.5 - Math.random());
-        let newOptions = {};
-        let newCorrectKey = '';
-
-        shuffledKeys.forEach((oldKey, newIdx) => {
-            let assignedKey = keys[newIdx];
-            newOptions[assignedKey] = q.options[oldKey];
-            if (q.options[oldKey] === originalCorrectText) {
-                newCorrectKey = assignedKey;
-            }
-        });
-
-        return { ...q, options: newOptions, correct: newCorrectKey };
-    }
-
-    function setupChoiceHighlighting(containerElement) {
-        containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const name = e.target.name;
-                document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-                    r.closest('.choice-item').classList.remove('selected-highlight');
-                });
-                if (e.target.checked) {
-                    e.target.closest('.choice-item').classList.add('selected-highlight');
-                }
-            });
-        });
-    }
-
-    function loadDailyChallenge() {
-        const container = document.getElementById('daily-problem-container');
-        if (localDB.length === 0) {
-            container.innerHTML = "No questions available in the Supabase question bank yet.";
-            return;
-        }
-
-        const record = localDB[Math.floor(Math.random() * localDB.length)];
-        document.getElementById('daily-subject-tag').innerText = record.main;
-        let q = randomizeChoices(record.questions[0]);
-        
-        let imagesHtml = "";
-        if (record.images && record.images.length > 0) {
-            record.images.forEach(img => { imagesHtml += `<img src="${img}" class="student-image-display">`; });
-        }
-
-        let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-        let isPast = record.isPastBoard || q.isPastBoard;
-        let boardBadge = isPast ? ` <span style="color:#d9822b;">[⭐ Past Board Exam${dateStr}]</span>` : '';
-
-        container.innerHTML = `
-            <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#003300;">[${record.id}] ${record.main} / ${record.sub}${boardBadge}</div>
-            ${record.scenario ? `<div style="background:#eef2f3; padding:10px; margin-bottom:10px; border-left:3px solid #003300; font-size:14px; line-height:1.5;">${record.scenario}</div>` : ''}
-            ${imagesHtml}
-            <div style="margin-bottom:12px; font-size:14px; line-height:1.5;">${q.question}</div>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="A"> A. ${q.options.A}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="B"> B. ${q.options.B}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="C"> C. ${q.options.C}</label>
-            <label class="choice-item"><input type="radio" name="daily_ans" value="D"> D. ${q.options.D}</label>
-            <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:12px;">Submit Answer</button>
-            <div id="daily-feedback" style="margin-top:12px; display:none; font-size:14px;"></div>
-        `;
-        
-        setupChoiceHighlighting(container);
-        if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
-    }
-
-    function checkDailyAnswer(correctOpt) {
-        const selected = document.querySelector('input[name="daily_ans"]:checked');
-        const feedback = document.getElementById('daily-feedback');
-        feedback.style.display = 'block';
-        if (!selected) { feedback.innerHTML = "<span style='color:orange;'>Please select an option first.</span>"; return; }
-        
-        if (selected.value === correctOpt) {
-            feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
-        } else {
-            feedback.innerHTML = `<span style='color:red; font-weight:bold;'>❌ Incorrect. The correct answer was ${correctOpt}.</span>`;
-        }
-    }
-
-    function toggleCustomCount() {
-        const count = document.getElementById('gen-count').value;
-        document.getElementById('custom-count-group').style.display = (count === 'custom') ? 'block' : 'none';
-    }
-
-    function startCustomExam() {
-        if (localDB.length === 0) return alert("Database is empty! Please add questions via admin panel first.");
-        
-        const main = document.getElementById('gen-main').value;
-        const sub = document.getElementById('gen-sub').value;
-        const boardTerm = document.getElementById('gen-board-term').value;
-        const countSelect = document.getElementById('gen-count').value;
-        const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
-        
-        let timeInput = document.getElementById('gen-time').value;
-        let timeMinutes = timeInput.toLowerCase() === 'default' || !timeInput ? totalItems * 4 : parseInt(timeInput);
-
-        let pool = [];
-        if (main === 'ALL') {
-            pool = [...localDB];
-        } else if (main === 'PAST_BOARD') {
-            pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
-            
-            if (sub !== 'ALL') {
-                pool = pool.filter(r => r.main === sub);
-            }
-
-            if (boardTerm !== 'ALL') {
-                pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
-            }
-        } else {
-            pool = localDB.filter(r => r.main === main);
-            if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
-        }
-
-        if (pool.length === 0) return alert("No questions available matching your selected category filters.");
-
-        let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
-        let selectedRecords = [];
-        let accumulatedQuestionsCount = 0;
-
-        for (let record of shuffledPool) {
-            if (accumulatedQuestionsCount >= totalItems) break;
-            selectedRecords.push(record);
-            accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
-        }
-
-        if (selectedRecords.length === 0) return alert("No questions available matching your filters.");
-
-        let examId = 'EXAM_' + Date.now();
-        let titleLabel = main === 'PAST_BOARD' ? `Past Board (${sub === 'ALL' ? 'All Subjects' : sub})` : main;
-        renderActiveExam(selectedRecords, timeMinutes, examId, `Custom Quiz (${titleLabel} - ${accumulatedQuestionsCount} Items)`);
-    }
-
-    let currentExamSession = null;
-
-    function renderActiveExam(records, timeMinutes, examId, examTitle) {
-        currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
-        
-        document.getElementById('active-exam-container').style.display = 'block';
-        document.getElementById('exam-title-header').innerText = examTitle;
-
-        const paper = document.getElementById('exam-questions-paper');
-        paper.innerHTML = "";
-
-        let questionFlattenList = [];
-        let globalRenderIdx = 1;
-
-        records.forEach((record) => {
-            let cardDiv = document.createElement('div');
-            cardDiv.className = 'card';
-            cardDiv.style.marginBottom = "20px";
-            cardDiv.style.borderBottom = "2px solid #ddd";
-            cardDiv.style.paddingBottom = "15px";
-
-            let htmlContent = "";
-            if (record.isSituational === 'Yes') {
-                let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-                let boardBadge = record.isPastBoard ? ` <span style="color:#d9822b;">[⭐ Past Board Exam${dateStr}]</span>` : '';
-                htmlContent += `<div style="background:#eef2f3; padding:10px; margin-bottom:12px; border-left:4px solid #003300; font-size:13px; line-height:1.5;"><strong>Situation [${record.id}]${boardBadge}:</strong><br>${record.scenario || ''}`;
-                if (record.images && record.images.length > 0) {
-                    record.images.forEach(img => { htmlContent += `<img src="${img}" class="student-image-display">`; });
-                }
-                htmlContent += `</div>`;
-            }
-
-            record.questions.forEach((origQ, qIdx) => {
-                let q = randomizeChoices(origQ);
-                let currentGlobalIdx = questionFlattenList.length;
-                questionFlattenList.push({ record: record, q: q, globalIdx: currentGlobalIdx });
-
-                let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-                let boardBadge = (record.isPastBoard || q.isPastBoard) ? ` <span style="color:#d9822b; font-size:12px;">[⭐ Past Board${dateStr}]</span>` : '';
-                let questionHeader = record.isSituational === 'Yes' 
-                    ? `Question ${globalRenderIdx++}${boardBadge}` 
-                    : `Question ${globalRenderIdx++} (${record.id}) - <small>${record.main} / ${record.sub}</small>${boardBadge}`;
-
-                htmlContent += `
-                    <div style="margin-bottom: 15px; padding-bottom: 12px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #dcdcdc;' : ''}">
-                        <div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#003300;">${questionHeader}</div>
-                        <div style="margin-bottom:10px; font-size:14px; line-height:1.5;">${q.question}</div>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
-                        <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="D"> D. ${q.options.D}</label>
-                    </div>
-                `;
-            });
-
-            let solutionTextHtml = record.solution ? `${record.solution}<br>` : '';
-            htmlContent += `
-                <div id="solution_block_${record.id}" class="solution-box">
-                    <strong>Solution for ${record.isSituational === 'Yes' ? 'Situation [' + record.id + ']' : 'Question ' + record.id}:</strong><br>
-                    ${solutionTextHtml}
-                    <div id="sol_images_${record.id}" style="margin-top:10px;"></div>
-                </div>
-            `;
-
-            cardDiv.innerHTML = htmlContent;
-            paper.appendChild(cardDiv);
-
-            setupChoiceHighlighting(cardDiv);
-
-            if (record.solutionImages && record.solutionImages.length > 0) {
-                setTimeout(() => {
-                    let solImgContainer = document.getElementById(`sol_images_${record.id}`);
-                    if (solImgContainer) {
-                        record.solutionImages.forEach(sImg => {
-                            solImgContainer.innerHTML += `<img src="${sImg}" class="student-image-display">`;
-                        });
-                    }
-                }, 50);
-            }
-        });
-
-        currentExamSession.flattenList = questionFlattenList;
-        startTimer(timeMinutes * 60);
-        if (window.renderMathInElement) renderMathInElement(paper, { delimiters: [{left:'$', right:'$', display:false}] });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function startTimer(durationSeconds) {
-        if (activeExamTimer) clearInterval(activeExamTimer);
-        let timer = durationSeconds;
-        const badge = document.getElementById('exam-timer-badge');
-
-        activeExamTimer = setInterval(() => {
-            let m = Math.floor(timer / 60);
-            let s = timer % 60;
-            badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            if (--timer < 0) {
-                clearInterval(activeExamTimer);
-                alert("Time's up! Submitting exam automatically.");
-                submitExam();
-            }
-        }, 1000);
-    }
-
-    function submitExam() {
-        if (!currentExamSession) return;
-        if (activeExamTimer) clearInterval(activeExamTimer);
-
-        let score = 0;
-        let total = currentExamSession.flattenList.length;
-
-        currentExamSession.flattenList.forEach((item, idx) => {
-            const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
-            let q = item.q;
-            q.stats = q.stats || { attempts: 0, correct: 0 };
-            q.stats.attempts++;
-
-            if (selected && selected.value === q.correct) {
-                score++;
-                q.stats.correct++;
-            }
-        });
-
-        let shownSolutionIds = new Set();
-        currentExamSession.flattenList.forEach(item => {
-            if (!shownSolutionIds.has(item.record.id)) {
-                shownSolutionIds.add(item.record.id);
-                let solBox = document.getElementById(`solution_block_${item.record.id}`);
-                if (solBox) solBox.style.display = 'block';
-            }
-        });
-
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        history.unshift({
-            examId: currentExamSession.examId,
-            examTitle: currentExamSession.examTitle,
-            records: currentExamSession.records,
-            date: new Date().toLocaleString(),
-            score: score,
-            total: total,
-            percentage: ((score / total) * 100).toFixed(1)
-        });
-        localStorage.setItem('ce_exam_history', JSON.stringify(history));
-
-        alert(`Exam Submitted! Your Score: ${score} / ${total} (${((score/total)*100).toFixed(1)}%)`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function retakeExam(index) {
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        let recordEntry = history[index];
-        if (!recordEntry || !recordEntry.records) return alert("Could not load exam for retake.");
-
-        switchTab('generator', document.querySelectorAll('.nav-tab')[1]);
-        renderActiveExam(recordEntry.records, recordEntry.total * 4, 'EXAM_' + Date.now(), `Retake: ${recordEntry.examTitle}`);
-    }
-
-    function renderExamHistory() {
-        const container = document.getElementById('history-records-container');
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        if (history.length === 0) { container.innerHTML = "No exam history recorded yet."; return; }
-
-        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th><th>Action</th></tr></thead><tbody>`;
-        history.forEach((h, idx) => {
-            html += `
-                <tr>
-                    <td>${h.date}</td>
-                    <td>${h.examTitle || 'Custom Quiz'}</td>
-                    <td><strong>${h.score} / ${h.total}</strong></td>
-                    <td>${h.percentage}%</td>
-                    <td><button type="button" class="action-btn" onclick="retakeExam(${idx})">🔄 Retake</button></td>
-                </tr>
-            `;
-        });
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-    }
-</script>
-</body>
-</html>
+        if (clickedTab && !clickedTab.innerText.includes('Logout')) clickedTab.classList
