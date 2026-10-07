@@ -86,10 +86,10 @@
 </head>
 <body>
 
-<!-- MAIN ADMIN CONTENT (Direct Access) -->
+<!-- MAIN ADMIN CONTENT -->
 <div class="container" id="admin-content">
     <h1>CE Exam Admin Panel</h1>
-    <p class="subtitle">Backend Question Repository & Management System</p>
+    <p class="subtitle">Supabase Backend Question Repository & Management System</p>
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('creator')">✏ Question Creator</div>
@@ -97,7 +97,7 @@
         <div class="tab" onclick="switchTab('bank')">📂 Manage & Edit Bank (<span id="bank-counter">0</span>)</div>
     </div>
 
-    <div id="success-alert" class="success-msg">Question successfully saved!</div>
+    <div id="success-alert" class="success-msg">Question successfully saved to Supabase!</div>
 
     <div id="creator-tab" class="tab-content active">
         
@@ -137,7 +137,7 @@
         </div>
 
         <form id="question-form">
-            <input type="hidden" id="edit-index" value="-1">
+            <input type="hidden" id="edit-mode-id" value="">
             
             <div class="row">
                 <div class="form-group">
@@ -165,13 +165,11 @@
                 </div>
             </div>
 
-            <!-- SITUATION ID / CODE (Shown if Situational = Yes) -->
             <div id="situation-id-group" class="form-group">
                 <label>Situation ID / Code:</label>
                 <input type="text" id="situation-code" placeholder="e.g., PSAD-SIT-001" required>
             </div>
 
-            <!-- STANDALONE ID / CODE (Shown if Situational = No) -->
             <div id="standalone-id-group" class="form-group" style="display:none;">
                 <label>Question ID / Code:</label>
                 <input type="text" id="standalone-code" placeholder="e.g., PSAD-RCD-001">
@@ -212,7 +210,6 @@
                 </div>
             </div>
 
-            <!-- SINGLE COMBINED SOLUTION BLOCK WITH MULTIPLE IMAGE SUPPORT -->
             <div class="form-group" style="margin-top: 20px;">
                 <label>Step-by-Step Solution (Complete Solution Block):</label>
                 <textarea id="global-solution-text" placeholder="Detailed solution steps for all questions in this set..." onfocus="setActiveField(this)"></textarea>
@@ -222,7 +219,7 @@
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="button" onclick="addNewQuestionBlock()" class="primary-btn" style="background: #20639b;">➕ Add another question</button>
-                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save & Finish Situation</button>
+                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save & Finish to Supabase</button>
             </div>
         </form>
     </div>
@@ -248,7 +245,7 @@
 
     <!-- TAB 3: MANAGE & EDIT QUESTION BANK -->
     <div id="bank-tab" class="tab-content">
-        <h3>Stored Question Repository</h3>
+        <h3>Supabase Stored Question Repository</h3>
         <div class="filter-box">
             <div class="row" style="margin-bottom: 12px;">
                 <div class="form-group" style="margin-bottom: 0;">
@@ -286,7 +283,7 @@
 
         <div style="margin-bottom: 15px;">
             <button type="button" onclick="exportDatabase()" style="background: #20639b; color:white; width: auto; padding: 8px 15px; font-size: 14px; border:none; border-radius:4px; cursor:pointer;">📥 Export as CSV</button>
-            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; width: auto; padding: 8px 15px; font-size: 14px; margin-left: 10px; border:none; border-radius:4px; cursor:pointer;">🗑️ Clear DB</button>
+            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; width: auto; padding: 8px 15px; font-size: 14px; margin-left: 10px; border:none; border-radius:4px; cursor:pointer;">🗑️ Clear Supabase DB</button>
         </div>
         <table class="bank-table">
             <thead><tr><th>Code / ID</th><th>Subject</th><th>Prompt / Situation</th><th>Actions</th></tr></thead>
@@ -301,11 +298,26 @@
     const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+    let localDB = [];
+
+    // Load Database from Supabase table on startup
+    async function loadDatabaseFromSupabase() {
+        const { data, error } = await supabaseClient.from('questions').select('*');
+        if (error) {
+            console.error('Error loading questions from Supabase:', error);
+            return;
+        }
+        localDB = data || [];
+        document.getElementById('bank-counter').innerText = localDB.length;
+        renderQuestionBankTable();
+    }
+    loadDatabaseFromSupabase();
+
     const subSubjectMap = {
         "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
         "HGE": ["Hydraulics", "Geotechnical Engineering"],
         "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"],
-        "Past CE Board Exam Problems": ["PSAD", "MSTC", "HPGE"]
+        "Past CE Board Exam Problems": ["Board Exam Packet 1", "Board Exam Packet 2", "CE Licensure Examination Archive"]
     };
 
     function populateSubSubjects(mainId, subId, selectedValue = "") {
@@ -540,12 +552,8 @@
         }
     }
 
-    let localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
-    document.getElementById('bank-counter').innerText = localDB.length;
-
-    function saveAndFinish(event) {
+    async function saveAndFinish(event) {
         event.preventDefault();
-        const editIndex = parseInt(document.getElementById('edit-index').value);
         const main = document.getElementById('main-subject').value;
         const sub = document.getElementById('sub-subject').value;
         const isSit = document.getElementById('is-situational').value;
@@ -581,29 +589,25 @@
             images: [...attachedImages],
             solutionImages: [...attachedSolutionImages],
             questions: questionsArray,
-            appearances: 0,
-            stats: { attempts: 0, correct: 0 }
+            appearances: 0
         };
 
-        if (editIndex >= 0) {
-            localDB[editIndex] = recordData;
-            showAlert("Record successfully updated!");
-        } else {
-            localDB.push(recordData);
-            showAlert("Successfully saved to repository!");
+        // Upsert record directly to Supabase table
+        const { error } = await supabaseClient.from('questions').upsert(recordData);
+        if (error) {
+            alert("Error saving to Supabase: " + error.message);
+            return;
         }
 
-        localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
-        document.getElementById('bank-counter').innerText = localDB.length;
-        
+        showAlert("Successfully saved to Supabase repository!");
+        await loadDatabaseFromSupabase();
         resetCreatorForm();
-        renderQuestionBankTable();
     }
 
     function resetCreatorForm() {
         document.getElementById('question-form').reset();
-        document.getElementById('edit-index').value = "-1";
-        document.getElementById('save-btn-label').innerText = "✅ Save & Finish Situation";
+        document.getElementById('edit-mode-id').value = "";
+        document.getElementById('save-btn-label').innerText = "✅ Save & Finish to Supabase";
         document.getElementById('question-blocks-container').innerHTML = `
             <div class="question-block-card" data-block-id="1">
                 <h4 style="margin-top:0; color:#003300;">Question #1</h4>
@@ -625,13 +629,13 @@
         updatePreview();
     }
 
-    function editRecord(index) {
-        const record = localDB[index];
+    function editRecord(recordId) {
+        const record = localDB.find(r => r.id === recordId);
         if (!record) return;
 
         resetCreatorForm();
-        document.getElementById('edit-index').value = index;
-        document.getElementById('save-btn-label').innerText = "💾 Update Record";
+        document.getElementById('edit-mode-id').value = record.id;
+        document.getElementById('save-btn-label').innerText = "💾 Update Record in Supabase";
 
         document.getElementById('main-subject').value = record.main;
         populateSubSubjects('main-subject', 'sub-subject', record.sub);
@@ -672,7 +676,6 @@
     function renderQuestionBankTable() {
         const tbody = document.getElementById('bank-table-body'); 
         tbody.innerHTML = "";
-        localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
         document.getElementById('bank-counter').innerText = localDB.length;
 
         const filterMain = document.getElementById('filter-main').value;
@@ -694,12 +697,11 @@
         });
 
         if (filteredDB.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">No matching records found in repository.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">No matching records found in Supabase.</td></tr>`;
             return;
         }
 
         filteredDB.forEach((q) => {
-            let originalIndex = localDB.indexOf(q);
             let displayPrompt = q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '');
             let tr = document.createElement('tr');
             tr.innerHTML = `
@@ -707,8 +709,8 @@
                 <td>${q.main}<br><small>${q.sub}</small></td>
                 <td>${displayPrompt}</td>
                 <td class="action-btns">
-                    <button type="button" class="btn-edit" onclick="editRecord(${originalIndex})">✏️ Edit</button>
-                    <button type="button" class="btn-delete" onclick="deleteRecord(${originalIndex})">🗑 Delete</button>
+                    <button type="button" class="btn-edit" onclick="editRecord('${q.id}')">✏️ Edit</button>
+                    <button type="button" class="btn-delete" onclick="deleteRecord('${q.id}')">🗑 Delete</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -717,19 +719,25 @@
         if (window.renderMathInElement) renderMathInElement(tbody, { delimiters: [{left: '$', right: '$', display: false}] });
     }
 
-    function deleteRecord(index) {
-        if (confirm("Delete this record?")) { 
-            localDB.splice(index, 1); 
-            localStorage.setItem('ce_question_bank', JSON.stringify(localDB)); 
-            renderQuestionBankTable(); 
+    async function deleteRecord(recordId) {
+        if (confirm("Delete this record from Supabase?")) { 
+            const { error } = await supabaseClient.from('questions').delete().eq('id', recordId);
+            if (error) {
+                alert("Error deleting: " + error.message);
+                return;
+            }
+            await loadDatabaseFromSupabase();
         }
     }
 
-    function clearEntireDatabase() {
-        if (confirm("WARNING: This will delete ALL saved questions. Are you sure?")) { 
-            localStorage.removeItem('ce_question_bank'); 
-            localDB = []; 
-            renderQuestionBankTable(); 
+    async function clearEntireDatabase() {
+        if (confirm("WARNING: This will delete ALL questions from the Supabase database. Are you sure?")) { 
+            const { error } = await supabaseClient.from('questions').delete().neq('id', '');
+            if (error) {
+                alert("Error clearing database: " + error.message);
+                return;
+            }
+            await loadDatabaseFromSupabase();
         }
     }
 
@@ -740,10 +748,10 @@
             csv += row.join(",") + "\n";
         });
         const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-        link.setAttribute("download", "ce_exam_database.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        link.setAttribute("download", "ce_exam_database_supabase.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    renderQuestionBankTable();
+    loadDatabaseFromSupabase();
 </script>
 </body>
 </html>
