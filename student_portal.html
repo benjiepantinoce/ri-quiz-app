@@ -75,7 +75,7 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, capped & centered on desktop */
+/* Responsive image display: full-width on mobile, equal and reduced width on desktop/landscape */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -89,8 +89,9 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        max-width: 420px; 
-        max-height: 350px;
+        width: auto;
+        max-width: 378px; 
+        max-height: 315px;
         object-fit: contain;
     }
 }
@@ -267,7 +268,6 @@ table.bank-table th { background: #003300; color: white; }
             subGroup.style.display = 'none';
             boardTermRow.style.display = 'none';
         } else if (main === 'PAST_BOARD') {
-            // When Past CE Board Exam is selected, show sub-filter for PSAD, HPGE, MSTC
             subGroup.style.display = 'block';
             subLabel.innerText = "Filter by Subject:";
             sub.innerHTML = `
@@ -277,7 +277,6 @@ table.bank-table th { background: #003300; color: white; }
                 <option value="MSTC">MSTC</option>
             `;
 
-            // Also populate term dropdown
             boardTermRow.style.display = 'flex';
             boardTermSelect.innerHTML = '<option value="ALL">All Board Exam Terms</option>';
             let uniqueTerms = [...new Set(localDB.filter(r => r.boardMonth && r.boardYear).map(r => `${r.boardMonth} ${r.boardYear}`))];
@@ -420,15 +419,12 @@ table.bank-table th { background: #003300; color: white; }
         if (main === 'ALL') {
             pool = [...localDB];
         } else if (main === 'PAST_BOARD') {
-            // Filter records tagged as past board exams
             pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
             
-            // Filter by selected subject (PSAD, HPGE, MSTC) if not ALL
             if (sub !== 'ALL') {
                 pool = pool.filter(r => r.main === sub);
             }
 
-            // Filter by board term if selected
             if (boardTerm !== 'ALL') {
                 pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
             }
