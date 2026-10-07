@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Review Innovations - CE Student Portal</title>
+<title>Review Innovations - CE Portal</title>
 
 <!-- KaTeX for Text & Math Rendering -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -17,6 +17,53 @@
 * { box-sizing: border-box; }
 body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; -webkit-text-size-adjust: 100%; }
 
+/* AUTH SCREEN STYLES */
+#auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #003300 0%, #1e5223 100%);
+    padding: 20px;
+}
+.auth-card {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    text-align: center;
+}
+.auth-logo { height: 50px; width: auto; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; background: #003300; padding: 4px; }
+.auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+.auth-tab { flex: 1; padding: 10px; cursor: pointer; font-weight: bold; font-size: 13px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.auth-tab.active { color: #003300; border-bottom: 3px solid #003300; }
+.auth-form-section { display: none; text-align: left; }
+.auth-form-section.active { display: block; }
+.ms-btn {
+    background: #2f2f2f;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.ms-btn:hover { background: #1f1f1f; }
+.divider { display: flex; align-items: center; text-align: center; margin: 15px 0; color: #888; font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
+.divider::before { margin-right: .5em; }
+.divider::after { margin-left: .5em; }
+
+/* PORTAL STYLES */
 .ri-navbar {
     background-color: #003300;
     display: flex;
@@ -45,11 +92,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     text-align: center;
 }
 .nav-tab:hover { background: rgba(255,255,255,0.05); }
-.nav-tab.active {
-    background: #1e5223;
-    color: #ffffff;
-    border-top: 3px solid #ccff00;
-}
+.nav-tab.active { background: #1e5223; color: #ffffff; border-top: 3px solid #ccff00; }
 
 .container { max-width: 950px; margin: 0 auto; background: white; padding: 12px; min-height: calc(100vh - 60px); }
 @media (min-width: 768px) {
@@ -75,7 +118,7 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, reduced by 30% (70 width) and centered on desktop/landscape */
+/* Responsive image display: full-width on mobile, 70% width & centered on desktop */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -89,8 +132,8 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        width: 40%;
-        max-width: 80%; 
+        width: 70%;
+        max-width: 100%; 
         height: auto;
         object-fit: contain;
     }
@@ -128,116 +171,262 @@ table.bank-table th { background: #003300; color: white; }
 </head>
 <body>
 
-<div class="ri-navbar">
-    <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
-    <div class="nav-tabs">
-        <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
-        <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
-        <div class="nav-tab" onclick="switchTab('history', this)">History</div>
+<!-- AUTHENTICATION SCREEN -->
+<div id="auth-wrapper">
+    <div class="auth-card">
+        <img src="RI_LOGO.png" alt="Review Innovations Logo" class="auth-logo">
+        <h2 style="font-size: 18px; color: #003300; margin-top: 0;">CE Student Portal Login</h2>
+        
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('email')">Email / Password</div>
+            <div class="auth-tab" onclick="switchAuthTab('code')">Enrollment Code</div>
+        </div>
+
+        <!-- Microsoft Login (Applies to all methods) -->
+        <button type="button" class="ms-btn" onclick="loginWithMicrosoft()">
+            <svg width="18" height="18" viewBox="0 0 21 21"><fill="#fff">
+                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
+            Sign in with Microsoft Account
+        </button>
+
+        <div class="divider">OR</div>
+
+        <!-- EMAIL & PASSWORD SECTION -->
+        <div id="auth-email-section" class="auth-form-section active">
+            <div class="form-group">
+                <label>Email Address:</label>
+                <input type="email" id="auth-email" placeholder="student@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="auth-password" placeholder="••••••••">
+            </div>
+            <button type="button" onclick="handleEmailAuth('signin')" class="primary-btn">Sign In</button>
+            <button type="button" onclick="handleEmailAuth('signup')" style="background:transparent; color:#003300; border:none; width:100%; margin-top:8px; cursor:pointer; font-size:12px; font-weight:bold;">Don't have an account? Sign Up</button>
+        </div>
+
+        <!-- ENROLLMENT CODE SECTION -->
+        <div id="auth-code-section" class="auth-form-section">
+            <div class="form-group">
+                <label>Unique Enrollment Code / Review ID:</label>
+                <input type="text" id="auth-code-input" placeholder="e.g., RI-CE-2026-XXXX">
+            </div>
+            <button type="button" onclick="handleEnrollmentCodeLogin()" class="primary-btn">Verify & Enter Portal</button>
+        </div>
+
+        <div id="auth-error-msg" style="color:red; font-size:12px; margin-top:10px;"></div>
     </div>
 </div>
 
-<div class="container">
-
-    <!-- TAB: DASHBOARD -->
-    <div id="dashboard-tab" class="tab-content active">
-        <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Daily Challenge</h2>
-        <p style="font-size: 14px; color: #666;">Your daily randomized problem challenge is ready below.</p>
-
-        <div class="card" id="daily-challenge-card">
-            <h3 style="font-size: 16px; margin: 0 0 10px 0;">⭐ Problem of the Day (<span id="daily-subject-tag">PSAD</span>)</h3>
-            <div id="daily-problem-container">Loading daily challenge from Supabase...</div>
+<!-- MAIN PORTAL CONTAINER (Hidden until authenticated) -->
+<div id="main-portal-app" style="display:none;">
+    <div class="ri-navbar">
+        <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
+            <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
+            <div class="nav-tab" onclick="switchTab('history', this)">History</div>
+            <div class="nav-tab" onclick="logoutSession()" style="color:#ffcccc;">Logout</div>
         </div>
     </div>
 
-    <!-- TAB: GENERATE QUIZ -->
-    <div id="generator-tab" class="tab-content">
-        <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Custom Quiz Generator</h2>
-        <div class="card">
-            <div class="row">
-                <div class="form-group">
-                    <label>Main Subject / Category:</label>
-                    <select id="gen-main" onchange="updateGenSubSubjects()">
-                        <option value="ALL">All Subjects</option>
-                        <option value="PSAD">PSAD (Principles of Structures & Design)</option>
-                        <option value="HPGE">HPGE (Hydraulics & Geotechnical)</option>
-                        <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
-                        <option value="PAST_BOARD">⭐ Past CE Board Exam Problems</option>
-                    </select>
-                </div>
-                <div class="form-group" id="sub-subject-group">
-                    <label id="sub-label">Sub-Subject:</label>
-                    <select id="gen-sub">
-                        <option value="ALL">All Sub-Subjects</option>
-                    </select>
-                </div>
-            </div>
+    <div class="container">
+        <!-- TAB: DASHBOARD -->
+        <div id="dashboard-tab" class="tab-content active">
+            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Daily Challenge</h2>
+            <p style="font-size: 14px; color: #666;">Your daily randomized problem challenge is ready below.</p>
 
-            <!-- SECONDARY FILTER FOR PAST BOARD EXAM TERMS -->
-            <div class="row" id="past-board-term-row" style="display:none;">
-                <div class="form-group" style="width: 100%;">
-                    <label>Filter by Board Exam Term (Optional):</label>
-                    <select id="gen-board-term">
-                        <option value="ALL">All Board Exam Terms</option>
-                    </select>
-                </div>
+            <div class="card" id="daily-challenge-card">
+                <h3 style="font-size: 16px; margin: 0 0 10px 0;">⭐ Problem of the Day (<span id="daily-subject-tag">PSAD</span>)</h3>
+                <div id="daily-problem-container">Loading daily challenge from Supabase...</div>
             </div>
-
-            <div class="row">
-                <div class="form-group">
-                    <label>Number of Items:</label>
-                    <select id="gen-count" onchange="toggleCustomCount()">
-                        <option value="15">15 Items</option>
-                        <option value="30" selected>30 Items</option>
-                        <option value="50">50 Items</option>
-                        <option value="75">75 Items</option>
-                        <option value="custom">Custom Number</option>
-                    </select>
-                </div>
-                <div class="form-group" id="custom-count-group" style="display:none;">
-                    <label>Custom Quantity:</label>
-                    <input type="number" id="gen-custom-input" value="20" min="1" max="200">
-                </div>
-                <div class="form-group">
-                    <label>Time Limit (Minutes):</label>
-                    <input type="text" id="gen-time" placeholder="Default: 4 mins/item" value="Default">
-                </div>
-            </div>
-
-            <button type="button" onclick="startCustomExam()" class="primary-btn" style="margin-top: 5px;">🚀 Start Timed Exam Session</button>
         </div>
 
-        <!-- ACTIVE EXAM CONTAINER -->
-        <div id="active-exam-container" style="display:none;">
+        <!-- TAB: GENERATE QUIZ -->
+        <div id="generator-tab" class="tab-content">
+            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Custom Quiz Generator</h2>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h3 id="exam-title-header" style="font-size: 16px; margin: 0;">Exam Session</h3>
-                    <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Main Subject / Category:</label>
+                        <select id="gen-main" onchange="updateGenSubSubjects()">
+                            <option value="ALL">All Subjects</option>
+                            <option value="PSAD">PSAD (Principles of Structures & Design)</option>
+                            <option value="HPGE">HPGE (Hydraulics & Geotechnical)</option>
+                            <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
+                            <option value="PAST_BOARD">⭐ Past CE Board Exam Problems</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="sub-subject-group">
+                        <label id="sub-label">Sub-Subject:</label>
+                        <select id="gen-sub">
+                            <option value="ALL">All Sub-Subjects</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="exam-questions-paper"></div>
-                <button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:15px;">✅ Submit Exam & View Solutions</button>
+
+                <!-- SECONDARY FILTER FOR PAST BOARD EXAM TERMS -->
+                <div class="row" id="past-board-term-row" style="display:none;">
+                    <div class="form-group" style="width: 100%;">
+                        <label>Filter by Board Exam Term (Optional):</label>
+                        <select id="gen-board-term">
+                            <option value="ALL">All Board Exam Terms</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>Number of Items:</label>
+                        <select id="gen-count" onchange="toggleCustomCount()">
+                            <option value="15">15 Items</option>
+                            <option value="30" selected>30 Items</option>
+                            <option value="50">50 Items</option>
+                            <option value="75">75 Items</option>
+                            <option value="custom">Custom Number</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-count-group" style="display:none;">
+                        <label>Custom Quantity:</label>
+                        <input type="number" id="gen-custom-input" value="20" min="1" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label>Time Limit (Minutes):</label>
+                        <input type="text" id="gen-time" placeholder="Default: 4 mins/item" value="Default">
+                    </div>
+                </div>
+
+                <button type="button" onclick="startCustomExam()" class="primary-btn" style="margin-top: 5px;">🚀 Start Timed Exam Session</button>
+            </div>
+
+            <!-- ACTIVE EXAM CONTAINER -->
+            <div id="active-exam-container" style="display:none;">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h3 id="exam-title-header" style="font-size: 16px; margin: 0;">Exam Session</h3>
+                        <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
+                    </div>
+                    <div id="exam-questions-paper"></div>
+                    <button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:15px;">✅ Submit Exam & View Solutions</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: PROGRESS & HISTORY -->
+        <div id="history-tab" class="tab-content">
+            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Performance History</h2>
+            <div class="card">
+                <p style="font-size: 13px; color: #666;">Track your past exam scores and review previous attempts.</p>
+                <div id="history-records-container" class="table-responsive">No exam history recorded yet.</div>
             </div>
         </div>
     </div>
-
-    <!-- TAB: PROGRESS & HISTORY -->
-    <div id="history-tab" class="tab-content">
-        <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Performance History</h2>
-        <div class="card">
-            <p style="font-size: 13px; color: #666;">Track your past exam scores and review previous attempts.</p>
-            <div id="history-records-container" class="table-responsive">No exam history recorded yet.</div>
-        </div>
-    </div>
-
 </div>
 
 <script>
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
+    const supabaseKey = 'PASTE_YOUR_ACTUAL_ANON_KEY_HERE';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     let localDB = [];
 
+    // --- AUTHENTICATION LOGIC ---
+    function switchAuthTab(type) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form-section').forEach(s => s.classList.remove('active'));
+        if (type === 'email') {
+            document.querySelectorAll('.auth-tab')[0].classList.add('active');
+            document.getElementById('auth-email-section').classList.add('active');
+        } else {
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            document.getElementById('auth-code-section').classList.add('active');
+        }
+        document.getElementById('auth-error-msg').innerText = "";
+    }
+
+    async function handleEmailAuth(mode) {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        const errDiv = document.getElementById('auth-error-msg');
+        errDiv.innerText = "";
+
+        if (!email || !password) { errDiv.innerText = "Please enter email and password."; return; }
+
+        if (mode === 'signup') {
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) errDiv.innerText = error.message;
+            else alert("Sign up successful! Please check your email for confirmation or log in.");
+        } else {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) errDiv.innerText = error.message;
+            else checkUserSession();
+        }
+    }
+
+    async function loginWithMicrosoft() {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'azure',
+            options: { scopes: 'email profile' }
+        });
+        if (error) document.getElementById('auth-error-msg').innerText = error.message;
+    }
+
+    async function handleEnrollmentCodeLogin() {
+        const code = document.getElementById('auth-code-input').value.trim();
+        const errDiv = document.getElementById('auth-error-msg');
+        errDiv.innerText = "";
+
+        if (!code) { errDiv.innerText = "Please enter your enrollment code."; return; }
+
+        // Verify against Supabase enrolled_students table
+        const { data, error } = await supabaseClient
+            .from('enrolled_students')
+            .select('*')
+            .eq('enrollment_code', code)
+            .single();
+
+        if (error || !data) {
+            errDiv.innerText = "Invalid enrollment code. Please check with Review Innovations admin.";
+            return;
+        }
+
+        // Store session locally for code login
+        localStorage.setItem('ri_student_code_session', JSON.stringify(data));
+        enterPortalApp();
+    }
+
+    async function checkUserSession() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            enterPortalApp();
+        } else {
+            // Check local enrollment code session
+            const codeSession = localStorage.getItem('ri_student_code_session');
+            if (codeSession) enterPortalApp();
+        }
+    }
+
+    async function logoutSession() {
+        await supabaseClient.auth.signOut();
+        localStorage.removeItem('ri_student_code_session');
+        document.getElementById('main-portal-app').style.display = 'none';
+        document.getElementById('auth-wrapper').style.display = 'flex';
+    }
+
+    function enterPortalApp() {
+        document.getElementById('auth-wrapper').style.display = 'none';
+        document.getElementById('main-portal-app').style.display = 'block';
+        fetchStudentQuestionBank();
+    }
+
+    // Run session check on load
+    checkUserSession();
+
+    // --- QUESTION BANK & EXAM LOGIC ---
     async function fetchStudentQuestionBank() {
         const { data, error } = await supabaseClient.from('questions').select('*');
         if (error) {
@@ -248,7 +437,6 @@ table.bank-table th { background: #003300; color: white; }
         localDB = data || [];
         loadDailyChallenge();
     }
-    fetchStudentQuestionBank();
 
     const subSubjectMap = {
         "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
@@ -303,7 +491,7 @@ table.bank-table th { background: #003300; color: white; }
     function switchTab(tabName, clickedTab) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        if (clickedTab) clickedTab.classList.add('active');
+        if (clickedTab && !clickedTab.innerText.includes('Logout')) clickedTab.classList.add('active');
         
         if (tabName === 'dashboard') {
             document.getElementById('dashboard-tab').classList.add('active');
