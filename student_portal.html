@@ -75,7 +75,25 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-.student-image-display { width: 100%; max-width: 100%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
+/* Responsive image display: full-width on mobile, capped & centered on desktop */
+.student-image-display { 
+    width: 100%; 
+    max-width: 100%; 
+    height: auto; 
+    margin: 10px auto; 
+    padding: 4px; 
+    background: #ffffff; 
+    border-radius: 4px; 
+    border: 1px solid #dcdcdc; 
+    display: block; 
+}
+@media (min-width: 768px) {
+    .student-image-display {
+        max-width: 420px; 
+        max-height: 350px;
+        object-fit: contain;
+    }
+}
 
 .choice-item { 
     display: block; 
@@ -150,6 +168,16 @@ table.bank-table th { background: #003300; color: white; }
                     <label id="sub-label">Sub-Subject:</label>
                     <select id="gen-sub">
                         <option value="ALL">All Sub-Subjects</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SECONDARY FILTER FOR PAST BOARD EXAM TERMS -->
+            <div class="row" id="past-board-term-row" style="display:none;">
+                <div class="form-group" style="width: 100%;">
+                    <label>Filter by Board Exam Term (Optional):</label>
+                    <select id="gen-board-term">
+                        <option value="ALL">All Board Exam Terms</option>
                     </select>
                 </div>
             </div>
@@ -232,21 +260,34 @@ table.bank-table th { background: #003300; color: white; }
         const subGroup = document.getElementById('sub-subject-group');
         const sub = document.getElementById('gen-sub');
         const subLabel = document.getElementById('sub-label');
+        const boardTermRow = document.getElementById('past-board-term-row');
+        const boardTermSelect = document.getElementById('gen-board-term');
 
         if (main === 'ALL') {
             subGroup.style.display = 'none';
+            boardTermRow.style.display = 'none';
         } else if (main === 'PAST_BOARD') {
+            // When Past CE Board Exam is selected, show sub-filter for PSAD, HPGE, MSTC
             subGroup.style.display = 'block';
-            subLabel.innerText = "Filter by Board Exam Term (Optional):";
-            sub.innerHTML = '<option value="ALL">All Past Board Exams</option>';
-            
+            subLabel.innerText = "Filter by Subject:";
+            sub.innerHTML = `
+                <option value="ALL">All Subjects (PSAD, HPGE, MSTC)</option>
+                <option value="PSAD">PSAD</option>
+                <option value="HPGE">HPGE</option>
+                <option value="MSTC">MSTC</option>
+            `;
+
+            // Also populate term dropdown
+            boardTermRow.style.display = 'flex';
+            boardTermSelect.innerHTML = '<option value="ALL">All Board Exam Terms</option>';
             let uniqueTerms = [...new Set(localDB.filter(r => r.boardMonth && r.boardYear).map(r => `${r.boardMonth} ${r.boardYear}`))];
             uniqueTerms.forEach(term => {
                 let opt = document.createElement('option'); opt.value = term; opt.textContent = term;
-                sub.appendChild(opt);
+                boardTermSelect.appendChild(opt);
             });
         } else {
             subGroup.style.display = 'block';
+            boardTermRow.style.display = 'none';
             subLabel.innerText = "Sub-Subject:";
             sub.innerHTML = '<option value="ALL">All Sub-Subjects</option>';
             if (subSubjectMap[main]) {
@@ -368,6 +409,7 @@ table.bank-table th { background: #003300; color: white; }
         
         const main = document.getElementById('gen-main').value;
         const sub = document.getElementById('gen-sub').value;
+        const boardTerm = document.getElementById('gen-board-term').value;
         const countSelect = document.getElementById('gen-count').value;
         const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
         
@@ -378,9 +420,17 @@ table.bank-table th { background: #003300; color: white; }
         if (main === 'ALL') {
             pool = [...localDB];
         } else if (main === 'PAST_BOARD') {
+            // Filter records tagged as past board exams
             pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
+            
+            // Filter by selected subject (PSAD, HPGE, MSTC) if not ALL
             if (sub !== 'ALL') {
-                pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === sub);
+                pool = pool.filter(r => r.main === sub);
+            }
+
+            // Filter by board term if selected
+            if (boardTerm !== 'ALL') {
+                pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
             }
         } else {
             pool = localDB.filter(r => r.main === main);
@@ -402,7 +452,7 @@ table.bank-table th { background: #003300; color: white; }
         if (selectedRecords.length === 0) return alert("No questions available matching your filters.");
 
         let examId = 'EXAM_' + Date.now();
-        let titleLabel = main === 'PAST_BOARD' ? (sub === 'ALL' ? 'Past CE Board Exam' : `Past Board (${sub})`) : main;
+        let titleLabel = main === 'PAST_BOARD' ? `Past Board (${sub === 'ALL' ? 'All Subjects' : sub})` : main;
         renderActiveExam(selectedRecords, timeMinutes, examId, `Custom Quiz (${titleLabel} - ${accumulatedQuestionsCount} Items)`);
     }
 
