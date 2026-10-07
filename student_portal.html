@@ -10,6 +10,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
+<!-- Supabase JS Client CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
 
@@ -128,7 +131,7 @@ table.bank-table th { background: #003300; color: white; }
 
 <div class="card" id="daily-challenge-card">
 <h3>⭐ Problem of the Day (<span id="daily-subject-tag">MSTC</span>)</h3>
-<div id="daily-problem-container">Loading daily challenge...</div>
+<div id="daily-problem-container">Loading daily challenge from Supabase...</div>
 </div>
 </div>
 
@@ -205,6 +208,26 @@ table.bank-table th { background: #003300; color: white; }
 </div>
 
 <script>
+    // Initialize Supabase Client
+    const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
+    const supabaseKey = 'PASTE_YOUR_ACTUAL_ANON_KEY_HERE'; // Ensure this matches your admin key
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    let localDB = [];
+
+    // Fetch Question Bank from Supabase on startup
+    async function fetchStudentQuestionBank() {
+        const { data, error } = await supabaseClient.from('questions').select('*');
+        if (error) {
+            console.error('Error loading question bank from Supabase:', error);
+            document.getElementById('daily-problem-container').innerHTML = "Error connecting to Supabase database.";
+            return;
+        }
+        localDB = data || [];
+        loadDailyChallenge();
+    }
+    fetchStudentQuestionBank();
+
 const subSubjectMap = {
 "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
 "HGE": ["Hydraulics", "Geotechnical Engineering"],
@@ -224,7 +247,6 @@ sub.appendChild(opt);
 }
 }
 
-let localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
 let activeExamTimer = null;
 
 function switchTab(tabName, clickedTab) {
@@ -286,9 +308,8 @@ e.target.closest('.choice-item').classList.add('selected-highlight');
 // --- DAILY CHALLENGE ROTATION ---
 function loadDailyChallenge() {
 const container = document.getElementById('daily-problem-container');
-localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
 if (localDB.length === 0) {
-container.innerHTML = "No questions available in the question bank yet.";
+container.innerHTML = "No questions available in the Supabase question bank yet.";
 return;
 }
 
@@ -350,7 +371,6 @@ document.getElementById('custom-count-group').style.display = (count === 'custom
 }
 
 function startCustomExam() {
-localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
 if (localDB.length === 0) return alert("Database is empty! Please add questions via admin panel first.");
 
 const main = document.getElementById('gen-main').value;
@@ -428,15 +448,15 @@ let questionHeader = record.isSituational === 'Yes'
 : `Question ${globalRenderIdx++} (${record.id}) - <small>${record.main} / ${record.sub}</small>`;
 
 htmlContent += `
-                   <div style="margin-bottom: 20px; padding-bottom: 15px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #ddd;' : ''}">
-                       <div style="font-weight:bold; margin-bottom:8px;">${questionHeader}</div>
-                       <div style="margin-bottom:10px;">${q.question}</div>
-                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
-                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
-                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
-                       <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="D"> D. ${q.options.D}</label>
-                   </div>
-               `;
+               <div style="margin-bottom: 20px; padding-bottom: 15px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #ddd;' : ''}">
+                   <div style="font-weight:bold; margin-bottom:8px;">${questionHeader}</div>
+                   <div style="margin-bottom:10px;">${q.question}</div>
+                   <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
+                   <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
+                   <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
+                   <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="D"> D. ${q.options.D}</label>
+               </div>
+           `;
 });
 
 htmlContent += `
@@ -465,7 +485,6 @@ solImgContainer.innerHTML += `<img src="${sImg}" class="student-image-display">`
 });
 
 currentExamSession.flattenList = questionFlattenList;
-localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
 startTimer(timeMinutes * 60);
 if (window.renderMathInElement) renderMathInElement(paper, { delimiters: [{left:'$', right:'$', display:false}] });
 window.scrollTo({ top: 400, behavior: 'smooth' });
@@ -516,8 +535,6 @@ if (solBox) solBox.style.display = 'block';
 }
 });
 
-localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
-
 let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
 history.unshift({
 examId: currentExamSession.examId,
@@ -564,9 +581,6 @@ html += `
 html += `</tbody></table>`;
 container.innerHTML = html;
 }
-
-// Initialize dashboard on load
-loadDailyChallenge();
 </script>
 </body>
 </html>
