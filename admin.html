@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Innovations - CE Admin & Question Manager</title>
+    
+    <!-- KaTeX for Text & Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://unpkg.com/mathlive"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #003300; text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+        
+        /* Tabs */
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; background: #f1f1f1; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0; margin-right: 5px; color: #555; }
+        .tab.active { background: white; color: #074b07; border-top: 3px solid #003300; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #003300; }
+        input[type="text"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
+        textarea { resize: vertical; height: 90px; }
+        .row { display: flex; gap: 15px; }
+        .row .form-group { flex: 1; }
+        
+        .choice-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .choice-row label { width: 30px; font-weight: bold; font-size: 16px; margin: 0; }
+        .choice-input-wrapper { flex: 1; }
+
+        .question-block-card { background: #fafbfc; border: 1px solid #cce0cc; padding: 20px; border-radius: 6px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+
+        /* Master Sticky Toolbar & Equation Builder */
+        .casio-toolbar { 
+            position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 10px; 
+            background: #e4e9ec; padding: 12px 15px; border: 2px solid #003300; border-radius: 6px; 
+            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
+        .toolbar-top-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .casio-toolbar button { background: #3b5998; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .casio-toolbar button:hover { background: #2d4373; }
+        .toolbar-section { display: flex; gap: 6px; align-items: center; border-right: 2px solid #cbd5e1; padding-right: 10px; margin-right: 6px; }
+        .toolbar-section:last-child { border-right: none; }
+
+        .equation-builder-container { 
+            display: flex; gap: 10px; align-items: center; background: #fff; padding: 6px; 
+            border-radius: 4px; border: 1px solid #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        math-field { flex: 1; padding: 5px; font-size: 18px; border: none; outline: none; background: transparent; }
+        .insert-btn { background: #28a745 !important; font-size: 14px !important; padding: 10px 15px !important; }
+
+        .paste-zone { border: 2px dashed #003300; padding: 12px; text-align: center; background: #f9fbfb; border-radius: 4px; cursor: pointer; margin-bottom: 10px; font-size: 14px; color: #555; }
+        .image-gallery { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .image-thumb { position: relative; width: 100px; height: 100px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #fff; }
+        .image-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .image-thumb button { position: absolute; top: 2px; right: 2px; background: rgba(217, 83, 79, 0.9); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; }
+
+        .student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
+        button.primary-btn:hover { background: #004d00; }
+        .success-msg { background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 4px; margin-bottom: 20px; text-align: center; font-weight: bold; display: none; border-left: 4px solid #4caf50; }
+
+        .student-preview-card { background: #fff; border: 1px solid #dcdcdc; padding: 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .scenario-box-preview { background: #eef2f3; padding: 15px; border-left: 4px solid #003300; margin-bottom: 15px; border-radius: 4px; line-height: 1.6; }
+        .choices-preview label { display: block; font-weight: normal; margin: 8px 0; cursor: pointer; background: #fafafa; padding: 8px; border: 1px solid #eee; border-radius: 4px; }
+        .solution-preview-box { background: #e8f5e9; padding: 15px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
+
+        .filter-box { background: #f8f9fa; border: 1px solid #ccd1d9; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        table.bank-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        table.bank-table th { background: #003300; color: white; }
+        .action-btns button { padding: 5px 10px; margin-right: 5px; font-size: 12px; border: none; border-radius: 3px; cursor: pointer; width: auto; font-weight: bold; }
+        .btn-edit { background: #20639b; color: white; }
+        .btn-delete { background: #d9534f; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CE Exam Admin Panel</h1>
+    <p class="subtitle">Backend Question Repository & Management System</p>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('creator')">✏ Question Creator</div>
+        <div class="tab" onclick="switchTab('preview')">👁 Student POV Preview</div>
+        <div class="tab" onclick="switchTab('bank')">📂 Manage & Edit Bank (<span id="bank-counter">0</span>)</div>
+    </div>
+
+    <div id="success-alert" class="success-msg">Question successfully saved!</div>
+
+    <div id="creator-tab" class="tab-content active">
+        
+        <!-- MASTER TOOLBAR WITH QUICK FORMAT & EQUATION BUILDER -->
+        <div class="casio-toolbar">
+            <div class="toolbar-top-row">
+                <span style="font-size: 12px; font-weight: bold; color: #003300; margin-right: 5px;">Text Format:</span>
+                <div class="toolbar-section">
+                    <button type="button" onclick="formatText('<b>', '</b>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><b>B</b></button>
+                    <button type="button" onclick="formatText('<i>', '</i>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><i>I</i></button>
+                    <button type="button" onclick="formatText('<sub>', '</sub>')" style="background: #fff; color: #333; border: 1px solid #ccc;">₂ Sub</button>
+                    <button type="button" onclick="formatText('<sup>', '</sup>')" style="background: #fff; color: #333; border: 1px solid #ccc;">² Sup</button>
+                </div>
+                
+                <span style="font-size: 12px; font-weight: bold; color: #003300; margin-left: 10px; margin-right: 5px;">Equation Pad:</span>
+                <div class="toolbar-section">
+                    <button type="button" onclick="executeMathCommand('\\frac{#0}{#1}')">➗ Fraction</button>
+                    <button type="button" onclick="executeMathCommand('\\sqrt{#0}')">√ Root</button>
+                    <button type="button" onclick="executeMathCommand('^{-1}')">x⁻¹</button>
+                    <button type="button" onclick="executeMathCommand('^2')">x²</button>
+                    <button type="button" onclick="executeMathCommand('_{#0}')">Subscript</button>
+                </div>
+                <div class="toolbar-section">
+                    <button type="button" onclick="executeMathCommand('f\'_c')">f'c</button>
+                    <button type="button" onclick="executeMathCommand('M_u')">Mu</button>
+                    <button type="button" onclick="executeMathCommand('V_u')">Vu</button>
+                    <button type="button" onclick="executeMathCommand('\\theta')">θ</button>
+                    <button type="button" onclick="executeMathCommand('\\sigma')">σ</button>
+                </div>
+            </div>
+
+            <div class="equation-builder-container">
+                <span style="font-size: 13px; font-weight: bold; color: #555;">Builder:</span>
+                <math-field id="math-builder" placeholder="Build equation here, then click insert ➡"></math-field>
+                <button type="button" class="insert-btn" onclick="insertBuiltEquation()">➕ Insert into Text</button>
+            </div>
+        </div>
+
+        <form id="question-form">
+            <input type="hidden" id="edit-index" value="-1">
+            
+            <div class="row">
+                <div class="form-group">
+                    <label>Main Subject:</label>
+                    <select id="main-subject" onchange="populateSubSubjects('main-subject', 'sub-subject')" required>
+                        <option value="PSAD">PSAD (Principles of Structures & Design)</option>
+                        <option value="HGE">HPGE (Hydraulics & Geotechnical Engineering)</option>
+                        <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
+                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sub-Subject:</label>
+                    <select id="sub-subject" required></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Is this a Situational Problem?</label>
+                    <select id="is-situational" onchange="toggleScenario()">
+                        <option value="Yes">Yes (Shares a Situation Passage)</option>
+                        <option value="No">No (Standalone Question)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SITUATION ID / CODE (Shown if Situational = Yes) -->
+            <div id="situation-id-group" class="form-group">
+                <label>Situation ID / Code:</label>
+                <input type="text" id="situation-code" placeholder="e.g., PSAD-SIT-001" required>
+            </div>
+
+            <!-- STANDALONE ID / CODE (Shown if Situational = No) -->
+            <div id="standalone-id-group" class="form-group" style="display:none;">
+                <label>Question ID / Code:</label>
+                <input type="text" id="standalone-code" placeholder="e.g., PSAD-RCD-001">
+            </div>
+
+            <div id="scenario-group" class="form-group">
+                <label>Situation / Passage Text:</label>
+                <textarea id="scenario-text" placeholder="Enter common data and references..." onfocus="setActiveField(this)"></textarea>
+                <div class="paste-zone" contenteditable="true" onpaste="handleScenarioPaste(event)">📋 Click here and press <strong>Ctrl + V</strong> to paste situation figures</div>
+                <div id="image-gallery-container" class="image-gallery"></div>
+            </div>
+
+            <!-- DYNAMIC QUESTION BLOCKS CONTAINER -->
+            <div id="question-blocks-container">
+                <div class="question-block-card" data-block-id="1">
+                    <h4 style="margin-top:0; color:#003300;">Question #1</h4>
+                    <div class="form-group">
+                        <label>Specific Question Prompt:</label>
+                        <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea>
+                    </div>
+                    <label>Multiple Choice Options:</label>
+                    <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
+                    <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
+                    <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
+                    <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
+
+                    <div class="row" style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label>Correct Answer:</label>
+                            <select class="q-correct">
+                                <option value="A">Option A</option>
+                                <option value="B" selected>Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SINGLE COMBINED SOLUTION BLOCK WITH MULTIPLE IMAGE SUPPORT -->
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Step-by-Step Solution (Complete Solution Block):</label>
+                <textarea id="global-solution-text" placeholder="Detailed solution steps for all questions in this set..." onfocus="setActiveField(this)"></textarea>
+                <div class="paste-zone" contenteditable="true" onpaste="handleSolutionPaste(event)" style="margin-top: 10px;">📋 Click here and press <strong>Ctrl + V</strong> to paste solution figures (Multiple allowed)</div>
+                <div id="solution-image-gallery-container" class="image-gallery"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="addNewQuestionBlock()" class="primary-btn" style="background: #20639b;">➕ Add another question</button>
+                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save & Finish Situation</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- TAB 2: STUDENT POV PREVIEW -->
+    <div id="preview-tab" class="tab-content">
+        <h3>Live Student View Simulation</h3>
+        <div class="student-preview-card">
+            <div id="prev-situation-header" style="font-size: 13px; font-weight: bold; color: #003300; margin-bottom: 5px;"></div>
+            <div class="scenario-box-preview" id="prev-scenario-wrapper">
+                <strong>Situation:</strong><br>
+                <span id="prev-scenario">No situation text entered yet.</span>
+                <div id="prev-image-gallery" style="margin-top: 10px;"></div>
+            </div>
+            <div id="preview-questions-container"></div>
+            <div id="prev-solution-box" class="solution-preview-box">
+                <strong>Solution:</strong><br>
+                <div id="prev-solution-content">No solution provided yet.</div>
+                <div id="prev-solution-image-gallery" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: MANAGE & EDIT QUESTION BANK -->
+    <div id="bank-tab" class="tab-content">
+        <h3>Stored Question Repository</h3>
+        <div class="filter-box">
+            <div class="row" style="margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Filter by Main Subject:</label>
+                    <select id="filter-main" onchange="updateFilterSubSubjects(); renderQuestionBankTable();">
+                        <option value="">-- All Main Subjects --</option>
+                        <option value="PSAD">PSAD</option>
+                        <option value="HGE">HPGE</option>
+                        <option value="MSTC">MSTC</option>
+                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Filter by Sub-Subject:</label>
+                    <select id="filter-sub" onchange="renderQuestionBankTable()">
+                        <option value="">-- All Sub-Subjects --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Search ID / Code / Text:</label>
+                    <input type="text" id="filter-search" placeholder="e.g., PSAD-SIT-001 or keywords..." oninput="renderQuestionBankTable()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Filter by Situational Status:</label>
+                    <select id="filter-situational" onchange="renderQuestionBankTable()">
+                        <option value="">-- All Status --</option>
+                        <option value="Yes">Yes (Situational)</option>
+                        <option value="No">No (Standalone)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <button type="button" onclick="exportDatabase()" style="background: #20639b; color:white; width: auto; padding: 8px 15px; font-size: 14px; border:none; border-radius:4px; cursor:pointer;">📥 Export as CSV</button>
+            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; width: auto; padding: 8px 15px; font-size: 14px; margin-left: 10px; border:none; border-radius:4px; cursor:pointer;">🗑️ Clear DB</button>
+        </div>
+        <table class="bank-table">
+            <thead><tr><th>Code / ID</th><th>Subject</th><th>Prompt / Situation</th><th>Actions</th></tr></thead>
+            <tbody id="bank-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const subSubjectMap = {
+        "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
+        "HGE": ["Hydraulics", "Geotechnical Engineering"],
+        "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"],
+        "Past CE Board Exam Problems": ["Board Exam Packet 1", "Board Exam Packet 2", "CE Licensure Examination Archive"]
+    };
+
+    function populateSubSubjects(mainId, subId, selectedValue = "") {
+        const mainSelect = document.getElementById(mainId);
+        const subSelect = document.getElementById(subId);
+        subSelect.innerHTML = "";
+        if (subSubjectMap[mainSelect.value]) {
+            subSubjectMap[mainSelect.value].forEach(sub => {
+                let opt = document.createElement('option');
+                opt.value = sub; opt.textContent = sub;
+                if (sub === selectedValue) opt.selected = true;
+                subSelect.appendChild(opt);
+            });
+        }
+    }
+
+    function updateFilterSubSubjects() {
+        const main = document.getElementById('filter-main').value;
+        const sub = document.getElementById('filter-sub');
+        sub.innerHTML = '<option value="">-- All Sub-Subjects --</option>';
+        if (subSubjectMap[main]) {
+            subSubjectMap[main].forEach(s => {
+                let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
+                sub.appendChild(opt);
+            });
+        }
+    }
+
+    populateSubSubjects('main-subject', 'sub-subject');
+
+    let attachedImages = [];
+    let attachedSolutionImages = [];
+    let activeFieldElement = document.getElementById('scenario-text');
+
+    function setActiveField(el) {
+        if (!el.id.includes('code')) activeFieldElement = el;
+    }
+
+    document.addEventListener('focusin', function(e) {
+        if ((e.target.tagName === 'INPUT' && e.target.type === 'text') || e.target.tagName === 'TEXTAREA') {
+            setActiveField(e.target);
+        }
+    });
+
+    document.getElementById('scenario-text').addEventListener('input', updatePreview);
+    document.getElementById('global-solution-text').addEventListener('input', updatePreview);
+
+    function executeMathCommand(cmd) {
+        let builder = document.getElementById('math-builder');
+        builder.focus();
+        builder.executeCommand(['insert', cmd]);
+    }
+
+    function insertBuiltEquation() {
+        let builder = document.getElementById('math-builder');
+        let latex = builder.getValue('latex');
+        if (!latex) return;
+        let target = activeFieldElement || document.querySelector('.q-text');
+        if (target) {
+            target.value += ` $${latex}$ `;
+            builder.setValue('');
+            updatePreview();
+        }
+    }
+
+    function formatText(s, e) {
+        let target = activeFieldElement || document.querySelector('.q-text');
+        if (target) {
+            let start = target.selectionStart;
+            let end = target.selectionEnd;
+            let val = target.value;
+            if (start !== undefined && end !== undefined && start !== end) {
+                target.value = val.substring(0, start) + s + val.substring(start, end) + e + val.substring(end);
+            } else {
+                target.value += s + e;
+            }
+            updatePreview();
+        }
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        if (tabName === 'creator') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('creator-tab').classList.add('active');
+        } else if (tabName === 'preview') {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('preview-tab').classList.add('active');
+            updatePreview();
+        } else if (tabName === 'bank') {
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('bank-tab').classList.add('active');
+            renderQuestionBankTable();
+        }
+    }
+
+    function toggleScenario() {
+        const isSit = document.getElementById('is-situational').value === 'Yes';
+        document.getElementById('scenario-group').style.display = isSit ? 'block' : 'none';
+        document.getElementById('situation-id-group').style.display = isSit ? 'block' : 'none';
+        document.getElementById('standalone-id-group').style.display = isSit ? 'none' : 'block';
+        updatePreview();
+    }
+
+    function handlePasteLogic(e, arr, renderFunc) {
+        let items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let i in items) {
+            if (items[i].kind === 'file') {
+                let reader = new FileReader();
+                reader.onload = ev => { arr.push(ev.target.result); renderFunc(); updatePreview(); };
+                reader.readAsDataURL(items[i].getAsFile());
+            }
+        }
+        e.preventDefault();
+    }
+
+    function handleScenarioPaste(e) { handlePasteLogic(e, attachedImages, renderGalleries); }
+    function handleSolutionPaste(e) { handlePasteLogic(e, attachedSolutionImages, renderSolutionGallery); }
+
+    function renderGalleries() {
+        const g1 = document.getElementById('image-gallery-container');
+        g1.innerHTML = "";
+        attachedImages.forEach((src, idx) => g1.innerHTML += `<div class="image-thumb"><img src="${src}"><button type="button" onclick="attachedImages.splice(${idx},1);renderGalleries();updatePreview()">X</button></div>`);
+    }
+
+    function renderSolutionGallery() {
+        const g2 = document.getElementById('solution-image-gallery-container');
+        g2.innerHTML = "";
+        attachedSolutionImages.forEach((src, idx) => g2.innerHTML += `<div class="image-thumb"><img src="${src}"><button type="button" onclick="attachedSolutionImages.splice(${idx},1);renderSolutionGallery();updatePreview()">X</button></div>`);
+    }
+
+    let blockCounter = 1;
+    function addNewQuestionBlock(qData = null) {
+        blockCounter++;
+        const container = document.getElementById('question-blocks-container');
+        const card = document.createElement('div');
+        card.className = 'question-block-card';
+        card.setAttribute('data-block-id', blockCounter);
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin-top:0; color:#003300;">Question #${container.children.length + 1}</h4>
+                <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:12px;">Remove Question</button>
+            </div>
+            <div class="form-group">
+                <label>Specific Question Prompt:</label>
+                <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)">${qData ? qData.question : ''}</textarea>
+            </div>
+            <label>Multiple Choice Options:</label>
+            <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" value="${qData ? qData.options.A : ''}" onfocus="setActiveField(this)" required></div></div>
+            <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" value="${qData ? qData.options.B : ''}" onfocus="setActiveField(this)" required></div></div>
+            <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" value="${qData ? qData.options.C : ''}" onfocus="setActiveField(this)" required></div></div>
+            <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" value="${qData ? qData.options.D : ''}" onfocus="setActiveField(this)" required></div></div>
+
+            <div class="row" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Correct Answer:</label>
+                    <select class="q-correct">
+                        <option value="A" ${qData && qData.correct === 'A' ? 'selected' : ''}>Option A</option>
+                        <option value="B" ${!qData || qData.correct === 'B' ? 'selected' : ''}>Option B</option>
+                        <option value="C" ${qData && qData.correct === 'C' ? 'selected' : ''}>Option C</option>
+                        <option value="D" ${qData && qData.correct === 'D' ? 'selected' : ''}>Option D</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+        card.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', updatePreview));
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const isSit = document.getElementById('is-situational').value === 'Yes';
+        const codeVal = isSit ? (document.getElementById('situation-code').value || "PSAD-SIT-001") : (document.getElementById('standalone-code').value || "PSAD-RCD-001");
+        const currentScenarioText = document.getElementById('scenario-text').value;
+        const globalSolText = document.getElementById('global-solution-text').value;
+        const blocks = document.querySelectorAll('.question-block-card');
+        
+        document.getElementById('prev-situation-header').innerText = `[${codeVal}]`;
+        
+        if (isSit) {
+            document.getElementById('prev-scenario-wrapper').style.display = 'block';
+            document.getElementById('prev-scenario').innerHTML = currentScenarioText ? currentScenarioText.replace(/\n/g, '<br>') : "No situation text entered yet.";
+            const prevGallery = document.getElementById('prev-image-gallery');
+            prevGallery.innerHTML = "";
+            attachedImages.forEach(imgSrc => {
+                let imgElement = document.createElement('img'); imgElement.src = imgSrc; imgElement.className = 'student-image-display'; prevGallery.appendChild(imgElement);
+            });
+        } else {
+            document.getElementById('prev-scenario-wrapper').style.display = 'none';
+        }
+
+        const container = document.getElementById('preview-questions-container');
+        const solContent = document.getElementById('prev-solution-content');
+        container.innerHTML = "";
+
+        blocks.forEach((block, index) => {
+            const qText = block.querySelector('.q-text').value || "Question prompt...";
+            const optA = block.querySelector('.q-opt-a').value || "A";
+            const optB = block.querySelector('.q-opt-b').value || "B";
+            const optC = block.querySelector('.q-opt-c').value || "C";
+            const optD = block.querySelector('.q-opt-d').value || "D";
+
+            let qDiv = document.createElement('div');
+            qDiv.style.cssText = "margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;";
+            qDiv.innerHTML = `
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">
+                    Question ${index + 1}: ${qText.replace(/\n/g, '<br>')}
+                </div>
+                <div class="choices-preview">
+                    <label><input type="radio"> A. ${optA}</label>
+                    <label><input type="radio"> B. ${optB}</label>
+                    <label><input type="radio"> C. ${optC}</label>
+                    <label><input type="radio"> D. ${optD}</label>
+                </div>
+            `;
+            container.appendChild(qDiv);
+        });
+
+        solContent.innerHTML = globalSolText ? globalSolText.replace(/\n/g, '<br>') : "No solution provided yet.";
+        const prevSolGallery = document.getElementById('prev-solution-image-gallery');
+        prevSolGallery.innerHTML = "";
+        attachedSolutionImages.forEach(imgSrc => {
+            let imgElement = document.createElement('img'); imgElement.src = imgSrc; imgElement.className = 'student-image-display'; prevSolGallery.appendChild(imgElement);
+        });
+
+        document.getElementById('prev-solution-box').style.display = 'block';
+
+        if (window.renderMathInElement) {
+            renderMathInElement(document.getElementById('preview-tab'), { delimiters: [{left: '$', right: '$', display: false}] });
+        }
+    }
+
+    let localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
+    document.getElementById('bank-counter').innerText = localDB.length;
+
+    function saveAndFinish(event) {
+        event.preventDefault();
+        const editIndex = parseInt(document.getElementById('edit-index').value);
+        const main = document.getElementById('main-subject').value;
+        const sub = document.getElementById('sub-subject').value;
+        const isSit = document.getElementById('is-situational').value;
+        const codeId = isSit ? document.getElementById('situation-code').value : document.getElementById('standalone-code').value;
+        
+        if (!codeId) return alert("Please enter a Situation ID / Code or Question ID.");
+
+        const scenario = isSit ? document.getElementById('scenario-text').value : "";
+        const globalSolution = document.getElementById('global-solution-text').value;
+        const blocks = document.querySelectorAll('.question-block-card');
+
+        let questionsArray = [];
+        blocks.forEach((block) => {
+            questionsArray.push({
+                question: block.querySelector('.q-text').value,
+                options: { 
+                    A: block.querySelector('.q-opt-a').value, 
+                    B: block.querySelector('.q-opt-b').value, 
+                    C: block.querySelector('.q-opt-c').value, 
+                    D: block.querySelector('.q-opt-d').value 
+                },
+                correct: block.querySelector('.q-correct').value
+            });
+        });
+
+        const recordData = {
+            id: codeId,
+            main: main,
+            sub: sub,
+            isSituational: isSit,
+            scenario: scenario,
+            solution: globalSolution,
+            images: [...attachedImages],
+            solutionImages: [...attachedSolutionImages],
+            questions: questionsArray,
+            appearances: 0,
+            stats: { attempts: 0, correct: 0 }
+        };
+
+        if (editIndex >= 0) {
+            localDB[editIndex] = recordData;
+            showAlert("Record successfully updated!");
+        } else {
+            localDB.push(recordData);
+            showAlert("Successfully saved to repository!");
+        }
+
+        localStorage.setItem('ce_question_bank', JSON.stringify(localDB));
+        document.getElementById('bank-counter').innerText = localDB.length;
+        
+        resetCreatorForm();
+        renderQuestionBankTable();
+    }
+
+    function resetCreatorForm() {
+        document.getElementById('question-form').reset();
+        document.getElementById('edit-index').value = "-1";
+        document.getElementById('save-btn-label').innerText = "✅ Save & Finish Situation";
+        document.getElementById('question-blocks-container').innerHTML = `
+            <div class="question-block-card" data-block-id="1">
+                <h4 style="margin-top:0; color:#003300;">Question #1</h4>
+                <div class="form-group"><label>Specific Question Prompt:</label><textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea></div>
+                <label>Multiple Choice Options:</label>
+                <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
+                <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
+                <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
+                <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
+                <div class="row" style="margin-top: 15px;"><div class="form-group"><label>Correct Answer:</label><select class="q-correct"><option value="A">Option A</option><option value="B" selected>Option B</option><option value="C">Option C</option><option value="D">Option D</option></select></div></div>
+            </div>
+        `;
+        blockCounter = 1;
+        attachedImages = [];
+        attachedSolutionImages = [];
+        renderGalleries();
+        renderSolutionGallery();
+        toggleScenario(); 
+        updatePreview();
+    }
+
+    function editRecord(index) {
+        const record = localDB[index];
+        if (!record) return;
+
+        resetCreatorForm();
+        document.getElementById('edit-index').value = index;
+        document.getElementById('save-btn-label').innerText = "💾 Update Record";
+
+        document.getElementById('main-subject').value = record.main;
+        populateSubSubjects('main-subject', 'sub-subject', record.sub);
+        document.getElementById('is-situational').value = record.isSituational;
+        toggleScenario();
+
+        if (record.isSituational === 'Yes') {
+            document.getElementById('situation-code').value = record.id;
+            document.getElementById('scenario-text').value = record.scenario || '';
+        } else {
+            document.getElementById('standalone-code').value = record.id;
+        }
+
+        document.getElementById('global-solution-text').value = record.solution || '';
+        attachedImages = [...(record.images || [])];
+        attachedSolutionImages = [...(record.solutionImages || [])];
+        renderGalleries();
+        renderSolutionGallery();
+
+        // Rebuild question blocks
+        const container = document.getElementById('question-blocks-container');
+        container.innerHTML = "";
+        blockCounter = 0;
+        if (record.questions && record.questions.length > 0) {
+            record.questions.forEach(q => addNewQuestionBlock(q));
+        } else {
+            addNewQuestionBlock();
+        }
+
+        switchTab('creator');
+        showAlert("Loaded record into Question Creator for editing.");
+    }
+
+    function showAlert(msg) {
+        let alertBox = document.getElementById('success-alert'); alertBox.innerText = msg; alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+    }
+
+    function renderQuestionBankTable() {
+        const tbody = document.getElementById('bank-table-body'); 
+        tbody.innerHTML = "";
+        localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
+        document.getElementById('bank-counter').innerText = localDB.length;
+
+        const filterMain = document.getElementById('filter-main').value;
+        const filterSub = document.getElementById('filter-sub').value;
+        const filterSearch = document.getElementById('filter-search').value.toLowerCase();
+        const filterSituational = document.getElementById('filter-situational').value;
+
+        let filteredDB = localDB.filter(q => {
+            if (filterMain && q.main !== filterMain) return false;
+            if (filterSub && q.sub !== filterSub) return false;
+            if (filterSituational && q.isSituational !== filterSituational) return false;
+            if (filterSearch) {
+                let matchId = q.id.toLowerCase().includes(filterSearch);
+                let matchQ = q.questions.some(item => item.question.toLowerCase().includes(filterSearch));
+                let matchScen = q.scenario && q.scenario.toLowerCase().includes(filterSearch);
+                if (!matchId && !matchQ && !matchScen) return false;
+            }
+            return true;
+        });
+
+        if (filteredDB.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">No matching records found in repository.</td></tr>`;
+            return;
+        }
+
+        filteredDB.forEach((q) => {
+            let originalIndex = localDB.indexOf(q);
+            let displayPrompt = q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '');
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${q.id}</strong></td>
+                <td>${q.main}<br><small>${q.sub}</small></td>
+                <td>${displayPrompt}</td>
+                <td class="action-btns">
+                    <button type="button" class="btn-edit" onclick="editRecord(${originalIndex})">✏️ Edit</button>
+                    <button type="button" class="btn-delete" onclick="deleteRecord(${originalIndex})">🗑 Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        if (window.renderMathInElement) renderMathInElement(tbody, { delimiters: [{left: '$', right: '$', display: false}] });
+    }
+
+    function deleteRecord(index) {
+        if (confirm("Delete this record?")) { 
+            localDB.splice(index, 1); 
+            localStorage.setItem('ce_question_bank', JSON.stringify(localDB)); 
+            renderQuestionBankTable(); 
+        }
+    }
+
+    function clearEntireDatabase() {
+        if (confirm("WARNING: This will delete ALL saved questions. Are you sure?")) { 
+            localStorage.removeItem('ce_question_bank'); 
+            localDB = []; 
+            renderQuestionBankTable(); 
+        }
+    }
+
+    function exportDatabase() {
+        let csv = "ID,Main_Subject,Sub_Subject,Is_Situational,Situation,Questions_Count\n";
+        localDB.exportCSV = true; // placeholder
+        localDB.forEach(q => {
+            let row = [ q.id, q.main, q.sub, q.isSituational, `"${q.scenario || ''}"`, q.questions.length ];
+            csv += row.join(",") + "\n";
+        });
+        const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
+        link.setAttribute("download", "ce_exam_database.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // Initial table load on startup
+    renderQuestionBankTable();
+</script>
+</body>
+</html>
