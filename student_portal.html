@@ -75,7 +75,7 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, nearly full background width with auto height on desktop/landscape */
+/* Responsive image display: full-width on mobile, reduced by 30% (70 width) and centered on desktop/landscape */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -89,7 +89,7 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        width: 100%;
+        width: 70%;
         max-width: 100%; 
         height: auto;
         object-fit: contain;
