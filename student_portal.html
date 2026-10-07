@@ -182,9 +182,9 @@ table.bank-table th { background: #003300; color: white; }
             <div class="auth-tab" onclick="switchAuthTab('code')">Enrollment Code</div>
         </div>
 
-        <!-- Microsoft Login (Applies to all methods) -->
+        <!-- Microsoft Login -->
         <button type="button" class="ms-btn" onclick="loginWithMicrosoft()">
-            <svg width="18" height="18" viewBox="0 0 21 21"><fill="#fff">
+            <svg width="18" height="18" viewBox="0 0 21 21">
                 <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
                 <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
                 <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
@@ -329,7 +329,7 @@ table.bank-table th { background: #003300; color: white; }
 
 <script>
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
-    const supabaseKey = 'PASTE_YOUR_ACTUAL_ANON_KEY_HERE';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     let localDB = [];
@@ -382,7 +382,6 @@ table.bank-table th { background: #003300; color: white; }
 
         if (!code) { errDiv.innerText = "Please enter your enrollment code."; return; }
 
-        // Verify against Supabase enrolled_students table
         const { data, error } = await supabaseClient
             .from('enrolled_students')
             .select('*')
@@ -394,17 +393,22 @@ table.bank-table th { background: #003300; color: white; }
             return;
         }
 
-        // Store session locally for code login
         localStorage.setItem('ri_student_code_session', JSON.stringify(data));
         enterPortalApp();
     }
 
+    function enterPortalApp() {
+        document.getElementById('auth-wrapper').style.display = 'none';
+        document.getElementById('main-portal-app').style.display = 'block';
+        fetchStudentQuestionBank();
+    }
+
     async function checkUserSession() {
+        // Handle Supabase OAuth return hash tokens automatically
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
         } else {
-            // Check local enrollment code session
             const codeSession = localStorage.getItem('ri_student_code_session');
             if (codeSession) enterPortalApp();
         }
@@ -415,12 +419,6 @@ table.bank-table th { background: #003300; color: white; }
         localStorage.removeItem('ri_student_code_session');
         document.getElementById('main-portal-app').style.display = 'none';
         document.getElementById('auth-wrapper').style.display = 'flex';
-    }
-
-    function enterPortalApp() {
-        document.getElementById('auth-wrapper').style.display = 'none';
-        document.getElementById('main-portal-app').style.display = 'block';
-        fetchStudentQuestionBank();
     }
 
     // Run session check on load
