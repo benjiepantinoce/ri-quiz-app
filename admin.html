@@ -156,21 +156,24 @@
                 </div>
             </div>
 
-            <!-- PAST BOARD EXAM TOGGLE & OPTIONAL MONTH/YEAR (SITUATION LEVEL) -->
-            <div class="form-group" style="background: #f4f9f4; padding: 10px; border: 1px solid #cce0cc; border-radius: 4px;">
+            <!-- PAST BOARD EXAM TOGGLE & OPTIONAL MONTH/YEAR (SITUATION LEVEL - Visible only when Situational = Yes) -->
+            <div id="situation-board-container" class="form-group" style="background: #f4f9f4; padding: 10px; border: 1px solid #cce0cc; border-radius: 4px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0 0 8px 0; color: #003300;">
                     <input type="checkbox" id="is-past-board-situation" onchange="toggleBoardDateFields()" style="width: 18px; height: 18px; cursor: pointer;">
                     ⭐ Tag entire situation/set as a <strong>Past CE Board Exam</strong> problem
                 </label>
-                <div id="board-date-container" style="display: none; display: flex; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #b2d8b2;">
+                <div id="board-date-container" style="display: none; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #b2d8b2;">
                     <div style="flex: 1;">
                         <label style="font-size: 11px;">Exam Month (Optional):</label>
                         <select id="board-month" style="padding: 6px; font-size: 13px;">
                             <option value="">-- Select Month --</option>
-                            <option value="November">November</option>
+                            <option value="March">March</option>
                             <option value="April">April</option>
                             <option value="May">May</option>
-                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
                         </select>
                     </div>
                     <div style="flex: 1;">
@@ -205,10 +208,11 @@
                         <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
                     </div>
                     
-                    <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+                    <!-- STANDALONE PAST BOARD EXAM TOGGLE (Visible only when Situational = No) -->
+                    <div id="standalone-board-toggle-1" class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
                             <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
-                            ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                            ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
                         </label>
                     </div>
 
@@ -434,6 +438,13 @@
         document.getElementById('scenario-group').style.display = isSit ? 'block' : 'none';
         document.getElementById('situation-id-group').style.display = isSit ? 'block' : 'none';
         document.getElementById('standalone-id-group').style.display = isSit ? 'none' : 'block';
+        document.getElementById('situation-board-container').style.display = isSit ? 'block' : 'none';
+        
+        // Toggle visibility of standalone board toggles inside question cards
+        document.querySelectorAll('.standalone-board-toggle-wrapper').forEach(el => {
+            el.style.display = isSit ? 'none' : 'block';
+        });
+
         updatePreview();
     }
 
@@ -468,6 +479,7 @@
     function addNewQuestionBlock(qData = null) {
         blockCounter++;
         const container = document.getElementById('question-blocks-container');
+        const isSit = document.getElementById('is-situational').value === 'Yes';
         const card = document.createElement('div');
         card.className = 'question-block-card';
         card.setAttribute('data-block-id', blockCounter);
@@ -476,12 +488,14 @@
                 <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #${container.children.length + 1}</h4>
                 <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
             </div>
-            <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+            
+            <div class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px; display: ${isSit ? 'none' : 'block'};">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
                     <input type="checkbox" class="q-is-past-board" ${qData && qData.isPastBoard ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
-                    ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                    ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
                 </label>
             </div>
+
             <div class="form-group">
                 <label>Question Prompt:</label>
                 <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)">${qData ? qData.question : ''}</textarea>
@@ -574,7 +588,7 @@
         const main = document.getElementById('main-subject').value;
         const sub = document.getElementById('sub-subject').value;
         const isSit = document.getElementById('is-situational').value;
-        const isPastBoardSituation = document.getElementById('is-past-board-situation').checked;
+        const isPastBoardSituation = isSit === 'Yes' ? document.getElementById('is-past-board-situation').checked : false;
         const boardMonth = document.getElementById('board-month').value;
         const boardYear = document.getElementById('board-year').value;
         const codeId = isSit ? document.getElementById('situation-code').value : document.getElementById('standalone-code').value;
@@ -587,9 +601,10 @@
 
         let questionsArray = [];
         blocks.forEach((block) => {
+            let isPastBoardQ = isPastBoardSituation || (isSit === 'No' ? block.querySelector('.q-is-past-board').checked : false);
             questionsArray.push({
                 question: block.querySelector('.q-text').value,
-                isPastBoard: isPastBoardSituation || block.querySelector('.q-is-past-board').checked,
+                isPastBoard: isPastBoardQ,
                 options: { 
                     A: block.querySelector('.q-opt-a').value, 
                     B: block.querySelector('.q-opt-b').value, 
@@ -633,10 +648,10 @@
         document.getElementById('question-blocks-container').innerHTML = `
             <div class="question-block-card" data-block-id="1">
                 <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #1</h4>
-                <div class="form-group" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
+                <div class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
                         <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
-                        ⭐ Tag this specific question as a <strong>Past CE Board Exam</strong> problem
+                        ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
                     </label>
                 </div>
                 <div class="form-group"><label>Question Prompt:</label><textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea></div>
@@ -731,7 +746,8 @@
 
         filteredDB.forEach((q) => {
             let dateStr = (q.boardMonth && q.boardYear) ? ` (${q.boardMonth} ${q.boardYear})` : '';
-            let badge = q.isPastBoard ? ` <span style="color:#d9822b; font-weight:bold;">[⭐ Past Board${dateStr}]</span>` : '';
+            let isPast = q.isPastBoard || q.questions.some(item => item.isPastBoard);
+            let badge = isPast ? ` <span style="color:#d9822b; font-weight:bold;">[⭐ Past Board${dateStr}]</span>` : '';
             let displayPrompt = (q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '')) + badge;
             let tr = document.createElement('tr');
             tr.innerHTML = `
