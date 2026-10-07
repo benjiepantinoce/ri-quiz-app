@@ -28,18 +28,28 @@
         
         .logout-btn { background: #d9534f; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
+<style>
+        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
+        
         /* RI Navbar Header matching official branding */
         .ri-navbar {
             background-color: #003300;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 20px;
             height: 70px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            gap: 20px;
         }
-        .nav-left { display: flex; align-items: center; gap: 20px; height: 100%; }
-        .ri-logo-img { height: 50px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; }
+
+        /* Official RI Logo Image Styling */
+        .ri-logo-img {
+            height: 50px;
+            width: auto;
+            border-radius: 4px;
+            border: 1px solid #ccff00;
+            object-fit: contain;
+        }
 
         /* Navigation Tabs */
         .nav-tabs { display: flex; align-items: center; height: 100%; gap: 5px; }
@@ -84,6 +94,7 @@
 
         .student-image-display { width: 100%; max-width: 450px; height: auto; margin: 15px auto; padding: 6px; background: #ffffff; border-radius: 6px; border: 1px solid #dcdcdc; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         
+        /* Choice Styling with Highlight State and Hidden Radio Circles */
         .choice-item { 
             display: block; 
             font-weight: normal; 
@@ -103,7 +114,9 @@
             color: #003300; 
             box-shadow: inset 3px 0 0 #2e7d32; 
         }
-        .choice-item input[type="radio"] { display: none; }
+        .choice-item input[type="radio"] { 
+            display: none; 
+        }
 
         .solution-box { background: #e8f5e9; padding: 15px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; }
 
@@ -114,190 +127,102 @@
 </head>
 <body>
 
-    <!-- AUTHENTICATION OVERLAY -->
-    <div id="auth-container">
-        <h2>Student Portal Login</h2>
-        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Sign in with Microsoft or MS Teams credentials.</p>
-        
-        <!-- Microsoft OAuth Login Button -->
-        <button type="button" class="microsoft-btn" onclick="handleMicrosoftLogin()">
-            <svg width="18" height="18" viewBox="0 0 21 21">
-                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-                <rect x="1" y="11" width="9" height="9" fill="#01a4ef"/>
-                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-            </svg>
-            Sign in with Microsoft
-        </button>
-
-        <div style="border-top: 1px solid #ddd; margin: 15px 0; position: relative;"><span style="background: white; padding: 0 10px; color: #777; font-size: 12px; position: relative; top: -10px;">or email / voucher login</span></div>
-
-        <input type="email" id="student-email" class="auth-input" placeholder="Registered Email / Teams Account" />
-        <input type="password" id="student-password" class="auth-input" placeholder="Password / Voucher Code" />
-        <button type="button" class="auth-btn" onclick="handleEmailLogin()">Login</button>
-        <div id="auth-error"></div>
+    <!-- RI NAVIGATION HEADER WITH EXACT LOGO IMAGE -->
+    <div class="ri-navbar">
+        <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
+            <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
+            <div class="nav-tab" onclick="switchTab('history', this)">Progress & History</div>
+        </div>
     </div>
 
-    <!-- MAIN STUDENT PORTAL CONTENT (Hidden until authenticated) -->
-    <div id="student-content" style="display: none;">
-        <!-- RI NAVIGATION HEADER WITH EXACT LOGO IMAGE -->
-        <div class="ri-navbar">
-            <div class="nav-left">
-                <img src="ri-logo.jpg" alt="Review Innovations Logo" class="ri-logo-img">
-                <div class="nav-tabs">
-                    <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
-                    <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
-                    <div class="nav-tab" onclick="switchTab('history', this)">Progress & History</div>
+<div class="container">
+    
+    <!-- TAB: DASHBOARD -->
+    <div id="dashboard-tab" class="tab-content active">
+        <h2>Daily Challenge</h2>
+        <p>Your daily randomized problem challenge is ready below.</p>
+
+        <div class="card" id="daily-challenge-card">
+            <h3>⭐ Problem of the Day (<span id="daily-subject-tag">MSTC</span>)</h3>
+            <div id="daily-problem-container">Loading daily challenge...</div>
+        </div>
+    </div>
+
+    <!-- TAB: GENERATE QUIZ -->
+    <div id="generator-tab" class="tab-content">
+        <h2>Custom Quiz Generator</h2>
+        <div class="card">
+            <div class="row">
+                <div class="form-group">
+                    <label>Main Subject:</label>
+                    <select id="gen-main" onchange="updateGenSubSubjects()">
+                        <option value="ALL">All Subjects</option>
+                        <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
+                        <option value="PSAD">PSAD (Principles of Structures & Design)</option>
+                        <option value="HGE">HPGE (Hydraulics & Geotechnical)</option>
+                        <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sub-Subject:</label>
+                    <select id="gen-sub">
+                        <option value="ALL">All Sub-Subjects</option>
+                    </select>
                 </div>
             </div>
-            <div>
-                <button type="button" class="logout-btn" onclick="handleLogout()">🔒 Logout</button>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Number of Items:</label>
+                    <select id="gen-count" onchange="toggleCustomCount()">
+                        <option value="15">15 Items</option>
+                        <option value="30" selected>30 Items</option>
+                        <option value="50">50 Items</option>
+                        <option value="75">75 Items</option>
+                        <option value="custom">Custom Number</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-count-group" style="display:none;">
+                    <label>Custom Quantity:</label>
+                    <input type="number" id="gen-custom-input" value="20" min="1" max="200">
+                </div>
+                <div class="form-group">
+                    <label>Time Limit (Minutes):</label>
+                    <input type="text" id="gen-time" placeholder="Default: 4 mins/item (Auto)" value="Default">
+                    <small style="color:#666;">Leave as 'Default' for 4 mins per question.</small>
+                </div>
             </div>
+
+            <button type="button" onclick="startCustomExam()" class="primary-btn">🚀 Start Timed Exam Session</button>
         </div>
 
-        <div class="container">
-            <!-- TAB: DASHBOARD -->
-            <div id="dashboard-tab" class="tab-content active">
-                <h2>Daily Challenge</h2>
-                <p>Your daily randomized problem challenge is ready below.</p>
-
-                <div class="card" id="daily-challenge-card">
-                    <h3>⭐ Problem of the Day (<span id="daily-subject-tag">MSTC</span>)</h3>
-                    <div id="daily-problem-container">Loading daily challenge...</div>
+        <!-- ACTIVE EXAM CONTAINER -->
+        <div id="active-exam-container" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 id="exam-title-header">Exam Session</h3>
+                    <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
                 </div>
-            </div>
-
-            <!-- TAB: GENERATE QUIZ -->
-            <div id="generator-tab" class="tab-content">
-                <h2>Custom Quiz Generator</h2>
-                <div class="card">
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Main Subject:</label>
-                            <select id="gen-main" onchange="updateGenSubSubjects()">
-                                <option value="ALL">All Subjects</option>
-                                <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
-                                <option value="PSAD">PSAD (Principles of Structures & Design)</option>
-                                <option value="HGE">HPGE (Hydraulics & Geotechnical)</option>
-                                <option value="Past CE Board Exam Problems">Past CE Board Exam Problems</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Sub-Subject:</label>
-                            <select id="gen-sub">
-                                <option value="ALL">All Sub-Subjects</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Number of Items:</label>
-                            <select id="gen-count" onchange="toggleCustomCount()">
-                                <option value="15">15 Items</option>
-                                <option value="30" selected>30 Items</option>
-                                <option value="50">50 Items</option>
-                                <option value="75">75 Items</option>
-                                <option value="custom">Custom Number</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="custom-count-group" style="display:none;">
-                            <label>Custom Quantity:</label>
-                            <input type="number" id="gen-custom-input" value="20" min="1" max="200">
-                        </div>
-                        <div class="form-group">
-                            <label>Time Limit (Minutes):</label>
-                            <input type="text" id="gen-time" placeholder="Default: 4 mins/item (Auto)" value="Default">
-                            <small style="color:#666;">Leave as 'Default' for 4 mins per question.</small>
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="startCustomExam()" class="primary-btn">🚀 Start Timed Exam Session</button>
-                </div>
-
-                <!-- ACTIVE EXAM CONTAINER -->
-                <div id="active-exam-container" style="display:none;">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3 id="exam-title-header">Exam Session</h3>
-                            <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
-                        </div>
-                        <div id="exam-questions-paper"></div>
-                        <button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:20px;">✅ Submit Exam & View Solutions</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: PROGRESS & HISTORY -->
-            <div id="history-tab" class="tab-content">
-                <h2>Performance History & Analytics</h2>
-                <div class="card">
-                    <p>Track your past exam scores, review previous attempts, or retake past exams.</p>
-                    <div id="history-records-container">No exam history recorded yet. Take an exam to build stats!</div>
-                </div>
+                <div id="exam-questions-paper"></div>
+                <button type="button" onclick="submitExam()" class="primary-btn" style="background:#28a745; margin-top:20px;">✅ Submit Exam & View Solutions</button>
             </div>
         </div>
     </div>
+
+    <!-- TAB: PROGRESS & HISTORY -->
+    <div id="history-tab" class="tab-content">
+        <h2>Performance History & Analytics</h2>
+        <div class="card">
+            <p>Track your past exam scores, review previous attempts, or retake past exams.</p>
+            <div id="history-records-container">No exam history recorded yet. Take an exam to build stats!</div>
+        </div>
+    </div>
+
+</div>
 
 <script>
-    // Initialize Supabase Client
-    const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
-    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your actual anon public key
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-    // Authentication Session Check on Load
-    async function checkAuthSession() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('student-content').style.display = 'block';
-            loadDailyChallenge();
-        } else {
-            document.getElementById('auth-container').style.display = 'block';
-            document.getElementById('student-content').style.display = 'none';
-        }
-    }
-    checkAuthSession();
-
-    // Email / Teams Password Login Handler
-    async function handleEmailLogin() {
-        const email = document.getElementById('student-email').value;
-        const password = document.getElementById('student-password').value;
-        const errorEl = document.getElementById('auth-error');
-
-        if (!email || !password) {
-            errorEl.innerText = "Please enter your email and password / voucher code.";
-            return;
-        }
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) {
-            errorEl.innerText = error.message;
-        } else {
-            errorEl.innerText = "";
-            checkAuthSession();
-        }
-    }
-
-    // Microsoft OAuth Login Handler
-    async function handleMicrosoftLogin() {
-        const errorEl = document.getElementById('auth-error');
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'azure',
-            options: {
-                redirectTo: window.location.href
-            }
-        });
-        if (error) {
-            errorEl.innerText = error.message;
-        }
-    }
-
-    async function handleLogout() {
-        await supabaseClient.auth.signOut();
-        checkAuthSession();
-    }
-
     const subSubjectMap = {
         "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
         "HGE": ["Hydraulics", "Geotechnical Engineering"],
@@ -337,6 +262,7 @@
         }
     }
 
+    // --- HELPER: RANDOMIZE CHOICES ---
     function randomizeChoices(q) {
         let originalCorrectText = q.options[q.correct];
         let keys = ['A', 'B', 'C', 'D'];
@@ -360,6 +286,7 @@
         };
     }
 
+    // --- CHOICE HIGHLIGHT LISTENER HELPER ---
     function setupChoiceHighlighting(containerElement) {
         containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -374,6 +301,7 @@
         });
     }
 
+    // --- DAILY CHALLENGE ROTATION ---
     function loadDailyChallenge() {
         const container = document.getElementById('daily-problem-container');
         localDB = JSON.parse(localStorage.getItem('ce_question_bank')) || [];
@@ -433,6 +361,7 @@
         }
     }
 
+    // --- CUSTOM EXAM GENERATOR ---
     function toggleCustomCount() {
         const count = document.getElementById('gen-count').value;
         document.getElementById('custom-count-group').style.display = (count === 'custom') ? 'block' : 'none';
@@ -632,6 +561,7 @@
         renderActiveExam(recordEntry.records, recordEntry.total * 4, 'EXAM_' + Date.now(), `Retake: ${recordEntry.examTitle}`);
     }
 
+    // --- PROGRESS & HISTORY ---
     function renderExamHistory() {
         const container = document.getElementById('history-records-container');
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
@@ -652,6 +582,9 @@
         html += `</tbody></table>`;
         container.innerHTML = html;
     }
+
+    // Initialize dashboard on load
+    loadDailyChallenge();
 </script>
 </body>
 </html>
