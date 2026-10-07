@@ -132,8 +132,8 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 }
 @media (min-width: 768px) {
     .student-image-display {
-        width: 70%;
-        max-width: 100%; 
+        width: 40%;
+        max-width: 80%; 
         height: auto;
         object-fit: contain;
     }
@@ -404,6 +404,7 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
+        // Handle Supabase OAuth return hash tokens automatically
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
