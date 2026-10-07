@@ -366,13 +366,16 @@ table.bank-table th { background: #003300; color: white; }
             else checkUserSession();
         }
     }
-
     async function loginWithMicrosoft() {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'azure',
-            options: { scopes: 'email profile' }
-        });
-        if (error) document.getElementById('auth-error-msg').innerText = error.message;
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+            scopes: 'email profile',
+            redirectTo: 'https://benjiepantinoce.github.io/ri-quiz-app/'
+        }
+    });
+    if (error) document.getElementById('auth-error-msg').innerText = error.message;
+
     }
 
     async function handleEnrollmentCodeLogin() {
