@@ -172,7 +172,7 @@ table.bank-table th { background: #003300; color: white; }
 <body>
 
 <!-- AUTHENTICATION SCREEN -->
-<div id="auth-wrapper">
+<div id="auth-wrapper" style="display:flex;">
     <div class="auth-card">
         <img src="RI_LOGO.png" alt="Review Innovations Logo" class="auth-logo">
         <h2 style="font-size: 18px; color: #003300; margin-top: 0;">CE Student Portal Login</h2>
@@ -416,7 +416,7 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Intercept OAuth hash tokens directly to prevent redirect loops on Vercel
+        // Intercept OAuth hash tokens directly from Microsoft redirect
         if (window.location.hash && window.location.hash.includes('access_token')) {
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session) {
@@ -426,12 +426,19 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
+        // Check standard Supabase session
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             enterPortalApp();
         } else {
+            // Check fallback enrollment code session
             const codeSession = localStorage.getItem('ri_student_code_session');
-            if (codeSession) enterPortalApp();
+            if (codeSession) {
+                enterPortalApp();
+            } else {
+                document.getElementById('auth-wrapper').style.display = 'flex';
+                document.getElementById('main-portal-app').style.display = 'none';
+            }
         }
     }
 
@@ -443,8 +450,10 @@ table.bank-table th { background: #003300; color: white; }
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Run session check on load
-    checkUserSession();
+    // Run session check immediately on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        checkUserSession();
+    });
 
     // --- QUESTION BANK & EXAM LOGIC ---
     async function fetchStudentQuestionBank() {
