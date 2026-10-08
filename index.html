@@ -62,7 +62,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ms-btn:hover { background: #1f1f1f; }
 
-/* DYNAMIC WATERMARK (4 Balanced, Larger, Faint Sections) */
+/* DYNAMIC WATERMARK */
 #watermark-layer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -82,7 +82,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     display: flex;
     justify-content: center;
     align-items: center;
-    color: rgba(0, 51, 0, 0.045); /* ~95% transparent, extremely comfortable to view */
+    color: rgba(0, 51, 0, 0.045);
     font-size: 22px;
     font-weight: bold;
     transform: rotate(-25deg);
@@ -91,7 +91,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     text-align: center;
 }
 
-/* PORTAL NAVBAR & LAYOUT (Mobile Optimized) */
+/* PORTAL NAVBAR & LAYOUT */
 .ri-navbar {
     background-color: #003300;
     display: flex;
@@ -147,7 +147,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 
 .form-group { margin-bottom: 12px; }
 label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 13px; color: #003300; }
-select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: #fff; }
+select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: #fff; }
 .row { display: flex; gap: 10px; flex-direction: column; }
 @media (min-width: 600px) { .row { flex-direction: row; } .row .form-group { flex: 1; } }
 
@@ -158,51 +158,15 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display */
-.student-image-display { 
-    width: 100%; 
-    max-width: 100%; 
-    height: auto; 
-    margin: 10px auto; 
-    padding: 4px; 
-    background: #ffffff; 
-    border-radius: 4px; 
-    border: 1px solid #dcdcdc; 
-    display: block; 
-}
-@media (min-width: 768px) {
-    .student-image-display {
-        width: 50%;
-        max-width: 80%; 
-        height: auto;
-        object-fit: contain;
-    }
-}
+.student-image-display { width: 100%; max-width: 100%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
+@media (min-width: 768px) { .student-image-display { width: 50%; max-width: 80%; height: auto; object-fit: contain; } }
 
-.choice-item { 
-    display: block; 
-    font-weight: normal; 
-    margin: 8px 0; 
-    cursor: pointer; 
-    background: #fafafa; 
-    padding: 12px; 
-    border: 1px solid #dcdcdc; 
-    border-radius: 4px; 
-    font-size: 14px;
-    transition: all 0.15s ease; 
-}
+.choice-item { display: block; font-weight: normal; margin: 8px 0; cursor: pointer; background: #fafafa; padding: 12px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 14px; transition: all 0.15s ease; }
 .choice-item:hover { background: #f0f7f0; border-color: #003300; }
-.choice-item.selected-highlight { 
-    background: #e8f5e9; 
-    border-color: #2e7d32; 
-    font-weight: bold; 
-    color: #003300; 
-    box-shadow: inset 4px 0 0 #2e7d32; 
-}
+.choice-item.selected-highlight { background: #e8f5e9; border-color: #2e7d32; font-weight: bold; color: #003300; box-shadow: inset 4px 0 0 #2e7d32; }
 .choice-item input[type="radio"] { display: none; }
 
 .solution-box { background: #e8f5e9; padding: 12px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 14px; line-height: 1.5; }
-
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
 table.bank-table { width: 100%; border-collapse: collapse; min-width: 450px; }
 table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
@@ -222,7 +186,6 @@ table.bank-table th { background: #003300; color: white; }
             <div class="auth-tab" onclick="switchAuthTab('id')">Student ID Login</div>
         </div>
 
-        <!-- MICROSOFT LOGIN SECTION -->
         <div id="auth-microsoft-section" class="auth-form-section active">
             <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Sign in securely using your authorized Microsoft account.</p>
             <button type="button" class="ms-btn" onclick="loginWithMicrosoft()">
@@ -236,7 +199,6 @@ table.bank-table th { background: #003300; color: white; }
             </button>
         </div>
 
-        <!-- STUDENT ID ENROLLMENT CODE SECTION -->
         <div id="auth-id-section" class="auth-form-section">
             <div class="form-group">
                 <label>Enter Your Student ID:</label>
@@ -249,7 +211,7 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- DYNAMIC WATERMARK LAYER (4 Balanced Grid Sections) -->
+<!-- DYNAMIC WATERMARK LAYER -->
 <div id="watermark-layer">
     <div class="watermark-grid">
         <div class="watermark-item"><span id="wm-1"></span></div>
@@ -259,7 +221,7 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- MAIN PORTAL CONTAINER (Hidden until authenticated) -->
+<!-- MAIN PORTAL CONTAINER -->
 <div id="main-portal-app" style="display:none;">
     <div class="ri-navbar">
         <div class="navbar-top">
@@ -309,7 +271,6 @@ table.bank-table th { background: #003300; color: white; }
                     </div>
                 </div>
 
-                <!-- SECONDARY FILTER FOR PAST BOARD EXAM TERMS -->
                 <div class="row" id="past-board-term-row" style="display:none;">
                     <div class="form-group" style="width: 100%;">
                         <label>Filter by Board Exam Term (Optional):</label>
@@ -343,7 +304,6 @@ table.bank-table th { background: #003300; color: white; }
                 <button type="button" onclick="startCustomExam()" class="primary-btn" style="margin-top: 5px;">🚀 Start Timed Exam Session</button>
             </div>
 
-            <!-- ACTIVE EXAM CONTAINER -->
             <div id="active-exam-container" style="display:none;">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -371,19 +331,13 @@ table.bank-table th { background: #003300; color: white; }
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
     
-    // Supabase client initialization with PKCE flow enabled for Vercel
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
-        auth: {
-            flowType: 'pkce',
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-        }
+        auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
 
     let localDB = [];
+    const activeStudentTable = 'enrolled_students';
 
-    // --- AUTHENTICATION & SECURITY LOGIC ---
     function switchAuthTab(type) {
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.auth-form-section').forEach(s => s.classList.remove('active'));
@@ -406,10 +360,7 @@ table.bank-table th { background: #003300; color: white; }
 
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
-            options: {
-                scopes: 'email profile',
-                redirectTo: window.location.origin + window.location.pathname
-            }
+            options: { scopes: 'email profile', redirectTo: window.location.origin + window.location.pathname }
         });
         if (error) document.getElementById('auth-error-msg').innerText = error.message;
     }
@@ -422,7 +373,7 @@ table.bank-table th { background: #003300; color: white; }
         if (!studentId) { errDiv.innerText = "Please enter your Student ID."; return; }
 
         const { data, error } = await supabaseClient
-            .from('May_2027_Students')
+            .from(activeStudentTable)
             .select('*')
             .eq('id', studentId)
             .single();
@@ -439,24 +390,16 @@ table.bank-table th { background: #003300; color: white; }
     function generateWatermark(student) {
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
-
-        const watermarkText = `${student.given_name} ${student.surname} (${student.id})`;
-        
+        const watermarkText = `${student.given_name || ''} ${student.surname || ''} (${student.id})`;
         document.getElementById('wm-1').innerText = watermarkText;
         document.getElementById('wm-2').innerText = watermarkText;
         document.getElementById('wm-3').innerText = watermarkText;
         document.getElementById('wm-4').innerText = watermarkText;
     }
 
-    // Anti-snoop blur protection when switching tabs
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            document.body.style.filter = 'blur(10px)';
-        } else {
-            document.body.style.filter = 'none';
-        }
+        if (document.hidden) { document.body.style.filter = 'blur(10px)'; } else { document.body.style.filter = 'none'; }
     });
-
     document.addEventListener('contextmenu', event => event.preventDefault());
 
     function enterPortalApp(studentData) {
@@ -464,7 +407,7 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('main-portal-app').style.display = 'block';
 
         const badge = document.getElementById('nav-student-badge');
-        badge.innerText = `👤 ${studentData.given_name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
+        badge.innerText = `👤 ${studentData.given_name || ''} ${studentData.surname || ''} [${studentData.review_section || 'Enrolled'}]`;
         badge.style.display = 'block';
 
         generateWatermark(studentData);
@@ -472,26 +415,31 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // 1. Check if running inside Microsoft Teams with robust SDK promise handshake
+        // 1. Teams Auto-Login & Automatic Section Detection
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
-                
                 const context = await new Promise((resolve) => {
                     microsoftTeams.app.getContext().then(resolve).catch(() => resolve(null));
-                    setTimeout(() => resolve(null), 1500); // 1.5s fallback timeout
+                    setTimeout(() => resolve(null), 1500);
                 });
                 
                 if (context && context.user && context.user.loginHint) {
                     const teamsEmail = context.user.loginHint;
+                    const teamsSection = context.team?.displayName || context.channel?.displayName || null;
 
                     const { data: studentRecord } = await supabaseClient
-                        .from('May_2027_Students')
+                        .from(activeStudentTable)
                         .select('*')
                         .eq('email', teamsEmail)
                         .single();
 
                     if (studentRecord) {
+                        if (teamsSection && !studentRecord.review_section) {
+                            studentRecord.review_section = teamsSection;
+                            await supabaseClient.from(activeStudentTable).update({ review_section: teamsSection }).eq('id', studentRecord.id);
+                        }
+
                         localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
                         enterPortalApp(studentRecord);
                         return;
@@ -502,49 +450,7 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
-        // 2. Intercept Microsoft OAuth tokens on return URL (Web browser flow)
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-            const { data } = await supabaseClient.auth.getSession();
-            if (data && data.session && data.session.user) {
-                const userEmail = data.session.user.email;
-                const userName = data.session.user.user_metadata?.full_name || userEmail;
-
-                const { data: studentRecord } = await supabaseClient
-                    .from('May_2027_Students')
-                    .select('*')
-                    .eq('email', userEmail)
-                    .single();
-
-                window.history.replaceState({}, document.title, window.location.pathname);
-
-                if (studentRecord) {
-                    localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
-                    enterPortalApp(studentRecord);
-                    return;
-                } else {
-                    const fallbackStudent = { id: 'MS-AUTH', given_name: userName, surname: '', review_section: 'Microsoft User' };
-                    localStorage.setItem('ri_student_session', JSON.stringify(fallbackStudent));
-                    enterPortalApp(fallbackStudent);
-                    return;
-                }
-            }
-        }
-
-        // 3. Check active Supabase auth session
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-            const userEmail = session.user.email;
-            const { data: studentRecord } = await supabaseClient
-                .from('May_2027_Students')
-                .select('*')
-                .eq('email', userEmail)
-                .single();
-            
-            enterPortalApp(studentRecord || { id: 'MS-AUTH', given_name: session.user.email, surname: '', review_section: 'Active' });
-            return;
-        }
-
-        // 4. Check local storage student ID session fallback
+        // 2. Local storage session fallback
         const savedSession = localStorage.getItem('ri_student_session');
         if (savedSession) {
             enterPortalApp(JSON.parse(savedSession));
@@ -563,7 +469,6 @@ table.bank-table th { background: #003300; color: white; }
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Run session check on load
     window.addEventListener('DOMContentLoaded', () => {
         checkUserSession();
     });
@@ -572,8 +477,8 @@ table.bank-table th { background: #003300; color: white; }
     async function fetchStudentQuestionBank() {
         const { data, error } = await supabaseClient.from('questions').select('*');
         if (error) {
-            console.error('Error loading questions from Supabase:', error);
-            document.getElementById('daily-problem-container').innerHTML = "Error connecting to Supabase database.";
+            console.error('Error loading questions:', error);
+            document.getElementById('daily-problem-container').innerHTML = "Error connecting to Supabase questions database.";
             return;
         }
         localDB = data || [];
@@ -601,19 +506,12 @@ table.bank-table th { background: #003300; color: white; }
         } else if (main === 'PAST_BOARD') {
             subGroup.style.display = 'block';
             subLabel.innerText = "Filter by Subject:";
-            sub.innerHTML = `
-                <option value="ALL">All Subjects (PSAD, HPGE, MSTC)</option>
-                <option value="PSAD">PSAD</option>
-                <option value="HPGE">HPGE</option>
-                <option value="MSTC">MSTC</option>
-            `;
-
+            sub.innerHTML = `<option value="ALL">All Subjects</option><option value="PSAD">PSAD</option><option value="HPGE">HPGE</option><option value="MSTC">MSTC</option>`;
             boardTermRow.style.display = 'flex';
             boardTermSelect.innerHTML = '<option value="ALL">All Board Exam Terms</option>';
             let uniqueTerms = [...new Set(localDB.filter(r => r.boardMonth && r.boardYear).map(r => `${r.boardMonth} ${r.boardYear}`))];
             uniqueTerms.forEach(term => {
-                let opt = document.createElement('option'); opt.value = term; opt.textContent = term;
-                boardTermSelect.appendChild(opt);
+                let opt = document.createElement('option'); opt.value = term; opt.textContent = term; boardTermSelect.appendChild(opt);
             });
         } else {
             subGroup.style.display = 'block';
@@ -621,10 +519,7 @@ table.bank-table th { background: #003300; color: white; }
             subLabel.innerText = "Sub-Subject:";
             sub.innerHTML = '<option value="ALL">All Sub-Subjects</option>';
             if (subSubjectMap[main]) {
-                subSubjectMap[main].forEach(s => {
-                    let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
-                    sub.appendChild(opt);
-                });
+                subSubjectMap[main].forEach(s => { let opt = document.createElement('option'); opt.value = s; opt.textContent = s; sub.appendChild(opt); });
             }
         }
     }
@@ -657,11 +552,8 @@ table.bank-table th { background: #003300; color: white; }
         shuffledKeys.forEach((oldKey, newIdx) => {
             let assignedKey = keys[newIdx];
             newOptions[assignedKey] = q.options[oldKey];
-            if (q.options[oldKey] === originalCorrectText) {
-                newCorrectKey = assignedKey;
-            }
+            if (q.options[oldKey] === originalCorrectText) newCorrectKey = assignedKey;
         });
-
         return { ...q, options: newOptions, correct: newCorrectKey };
     }
 
@@ -669,22 +561,15 @@ table.bank-table th { background: #003300; color: white; }
         containerElement.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const name = e.target.name;
-                document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-                    r.closest('.choice-item').classList.remove('selected-highlight');
-                });
-                if (e.target.checked) {
-                    e.target.closest('.choice-item').classList.add('selected-highlight');
-                }
+                document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.closest('.choice-item').classList.remove('selected-highlight'));
+                if (e.target.checked) e.target.closest('.choice-item').classList.add('selected-highlight');
             });
         });
     }
 
     function loadDailyChallenge() {
         const container = document.getElementById('daily-problem-container');
-        if (localDB.length === 0) {
-            container.innerHTML = "No questions available in the Supabase question bank yet.";
-            return;
-        }
+        if (localDB.length === 0) { container.innerHTML = "No questions available."; return; }
 
         const record = localDB[Math.floor(Math.random() * localDB.length)];
         document.getElementById('daily-subject-tag').innerText = record.main;
@@ -695,12 +580,8 @@ table.bank-table th { background: #003300; color: white; }
             record.images.forEach(img => { imagesHtml += `<img src="${img}" class="student-image-display">`; });
         }
 
-        let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-        let isPast = record.isPastBoard || q.isPastBoard;
-        let boardBadge = isPast ? ` <span style="color:#d9822b;">[⭐ Past Board Exam${dateStr}]</span>` : '';
-
         container.innerHTML = `
-            <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#003300;">[${record.id}] ${record.main} / ${record.sub}${boardBadge}</div>
+            <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#003300;">[${record.id}] ${record.main} / ${record.sub}</div>
             ${record.scenario ? `<div style="background:#eef2f3; padding:10px; margin-bottom:10px; border-left:3px solid #003300; font-size:14px; line-height:1.5;">${record.scenario}</div>` : ''}
             ${imagesHtml}
             <div style="margin-bottom:12px; font-size:14px; line-height:1.5;">${q.question}</div>
@@ -711,7 +592,6 @@ table.bank-table th { background: #003300; color: white; }
             <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:12px;">Submit Answer</button>
             <div id="daily-feedback" style="margin-top:12px; display:none; font-size:14px;"></div>
         `;
-        
         setupChoiceHighlighting(container);
         if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
     }
@@ -721,11 +601,10 @@ table.bank-table th { background: #003300; color: white; }
         const feedback = document.getElementById('daily-feedback');
         feedback.style.display = 'block';
         if (!selected) { feedback.innerHTML = "<span style='color:orange;'>Please select an option first.</span>"; return; }
-        
         if (selected.value === correctOpt) {
             feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
         } else {
-            feedback.innerHTML = `<span style='color:red; font-weight:bold;'>❌ Incorrect. The correct answer was ${correctOpt}.</span>`;
+            feedback.innerHTML = `<span style='color:red; font-weight:bold;'>❌ Incorrect. Correct answer was ${correctOpt}.</span>`;
         }
     }
 
@@ -735,8 +614,7 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     function startCustomExam() {
-        if (localDB.length === 0) return alert("Database is empty! Please add questions via admin panel first.");
-        
+        if (localDB.length === 0) return alert("Database is empty!");
         const main = document.getElementById('gen-main').value;
         const sub = document.getElementById('gen-sub').value;
         const boardTerm = document.getElementById('gen-board-term').value;
@@ -747,25 +625,17 @@ table.bank-table th { background: #003300; color: white; }
         let timeMinutes = timeInput.toLowerCase() === 'default' || !timeInput ? totalItems * 4 : parseInt(timeInput);
 
         let pool = [];
-        if (main === 'ALL') {
-            pool = [...localDB];
-        } else if (main === 'PAST_BOARD') {
+        if (main === 'ALL') { pool = [...localDB]; }
+        else if (main === 'PAST_BOARD') {
             pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
-            
-            if (sub !== 'ALL') {
-                pool = pool.filter(r => r.main === sub);
-            }
-
-            if (boardTerm !== 'ALL') {
-                pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
-            }
+            if (sub !== 'ALL') pool = pool.filter(r => r.main === sub);
+            if (boardTerm !== 'ALL') pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
         } else {
             pool = localDB.filter(r => r.main === main);
             if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
         }
 
-        if (pool.length === 0) return alert("No questions available matching your selected category filters.");
-
+        if (pool.length === 0) return alert("No questions available matching filters.");
         let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
         let selectedRecords = [];
         let accumulatedQuestionsCount = 0;
@@ -776,24 +646,18 @@ table.bank-table th { background: #003300; color: white; }
             accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
         }
 
-        if (selectedRecords.length === 0) return alert("No questions available matching your filters.");
-
-        let examId = 'EXAM_' + Date.now();
-        let titleLabel = main === 'PAST_BOARD' ? `Past Board (${sub === 'ALL' ? 'All Subjects' : sub})` : main;
-        renderActiveExam(selectedRecords, timeMinutes, examId, `Custom Quiz (${titleLabel} - ${accumulatedQuestionsCount} Items)`);
+        renderActiveExam(selectedRecords, timeMinutes, 'EXAM_' + Date.now(), `Custom Quiz (${main} - ${accumulatedQuestionsCount} Items)`);
     }
 
     let currentExamSession = null;
 
     function renderActiveExam(records, timeMinutes, examId, examTitle) {
         currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
-        
         document.getElementById('active-exam-container').style.display = 'block';
         document.getElementById('exam-title-header').innerText = examTitle;
 
         const paper = document.getElementById('exam-questions-paper');
         paper.innerHTML = "";
-
         let questionFlattenList = [];
         let globalRenderIdx = 1;
 
@@ -806,12 +670,8 @@ table.bank-table th { background: #003300; color: white; }
 
             let htmlContent = "";
             if (record.isSituational === 'Yes') {
-                let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-                let boardBadge = record.isPastBoard ? ` <span style="color:#d9822b;">[⭐ Past Board Exam${dateStr}]</span>` : '';
-                htmlContent += `<div style="background:#eef2f3; padding:10px; margin-bottom:12px; border-left:4px solid #003300; font-size:13px; line-height:1.5;"><strong>Situation [${record.id}]${boardBadge}:</strong><br>${record.scenario || ''}`;
-                if (record.images && record.images.length > 0) {
-                    record.images.forEach(img => { htmlContent += `<img src="${img}" class="student-image-display">`; });
-                }
+                htmlContent += `<div style="background:#eef2f3; padding:10px; margin-bottom:12px; border-left:4px solid #003300; font-size:13px; line-height:1.5;"><strong>Situation [${record.id}]:</strong><br>${record.scenario || ''}`;
+                if (record.images) record.images.forEach(img => { htmlContent += `<img src="${img}" class="student-image-display">`; });
                 htmlContent += `</div>`;
             }
 
@@ -820,15 +680,9 @@ table.bank-table th { background: #003300; color: white; }
                 let currentGlobalIdx = questionFlattenList.length;
                 questionFlattenList.push({ record: record, q: q, globalIdx: currentGlobalIdx });
 
-                let dateStr = (record.boardMonth && record.boardYear) ? ` (${record.boardMonth} ${record.boardYear})` : '';
-                let boardBadge = (record.isPastBoard || q.isPastBoard) ? ` <span style="color:#d9822b; font-size:12px;">[⭐ Past Board${dateStr}]</span>` : '';
-                let questionHeader = record.isSituational === 'Yes' 
-                    ? `Question ${globalRenderIdx++}${boardBadge}` 
-                    : `Question ${globalRenderIdx++} (${record.id}) - <small>${record.main} / ${record.sub}</small>${boardBadge}`;
-
                 htmlContent += `
                     <div style="margin-bottom: 15px; padding-bottom: 12px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #dcdcdc;' : ''}">
-                        <div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#003300;">${questionHeader}</div>
+                        <div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#003300;">Question ${globalRenderIdx++}</div>
                         <div style="margin-bottom:10px; font-size:14px; line-height:1.5;">${q.question}</div>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
@@ -838,30 +692,10 @@ table.bank-table th { background: #003300; color: white; }
                 `;
             });
 
-            let solutionTextHtml = record.solution ? `${record.solution}<br>` : '';
-            htmlContent += `
-                <div id="solution_block_${record.id}" class="solution-box">
-                    <strong>Solution for ${record.isSituational === 'Yes' ? 'Situation [' + record.id + ']' : 'Question ' + record.id}:</strong><br>
-                    ${solutionTextHtml}
-                    <div id="sol_images_${record.id}" style="margin-top:10px;"></div>
-                </div>
-            `;
-
+            htmlContent += `<div id="solution_block_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || ''}</div>`;
             cardDiv.innerHTML = htmlContent;
             paper.appendChild(cardDiv);
-
             setupChoiceHighlighting(cardDiv);
-
-            if (record.solutionImages && record.solutionImages.length > 0) {
-                setTimeout(() => {
-                    let solImgContainer = document.getElementById(`sol_images_${record.id}`);
-                    if (solImgContainer) {
-                        record.solutionImages.forEach(sImg => {
-                            solImgContainer.innerHTML += `<img src="${sImg}" class="student-image-display">`;
-                        });
-                    }
-                }, 50);
-            }
         });
 
         currentExamSession.flattenList = questionFlattenList;
@@ -874,89 +708,42 @@ table.bank-table th { background: #003300; color: white; }
         if (activeExamTimer) clearInterval(activeExamTimer);
         let timer = durationSeconds;
         const badge = document.getElementById('exam-timer-badge');
-
         activeExamTimer = setInterval(() => {
-            let m = Math.floor(timer / 60);
-            let s = timer % 60;
+            let m = Math.floor(timer / 60), s = timer % 60;
             badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            if (--timer < 0) {
-                clearInterval(activeExamTimer);
-                alert("Time's up! Submitting exam automatically.");
-                submitExam();
-            }
+            if (--timer < 0) { clearInterval(activeExamTimer); alert("Time's up!"); submitExam(); }
         }, 1000);
     }
 
     function submitExam() {
         if (!currentExamSession) return;
         if (activeExamTimer) clearInterval(activeExamTimer);
-
-        let score = 0;
-        let total = currentExamSession.flattenList.length;
+        let score = 0, total = currentExamSession.flattenList.length;
 
         currentExamSession.flattenList.forEach((item, idx) => {
             const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
-            let q = item.q;
-            q.stats = q.stats || { attempts: 0, correct: 0 };
-            q.stats.attempts++;
-
-            if (selected && selected.value === q.correct) {
-                score++;
-                q.stats.correct++;
-            }
+            if (selected && selected.value === item.q.correct) score++;
         });
 
-        let shownSolutionIds = new Set();
-        currentExamSession.flattenList.forEach(item => {
-            if (!shownSolutionIds.has(item.record.id)) {
-                shownSolutionIds.add(item.record.id);
-                let solBox = document.getElementById(`solution_block_${item.record.id}`);
-                if (solBox) solBox.style.display = 'block';
-            }
+        currentExamSession.records.forEach(r => {
+            let box = document.getElementById(`solution_block_${r.id}`);
+            if (box) box.style.display = 'block';
         });
 
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        history.unshift({
-            examId: currentExamSession.examId,
-            examTitle: currentExamSession.examTitle,
-            records: currentExamSession.records,
-            date: new Date().toLocaleString(),
-            score: score,
-            total: total,
-            percentage: ((score / total) * 100).toFixed(1)
-        });
+        history.unshift({ examTitle: currentExamSession.examTitle, date: new Date().toLocaleString(), score, total, percentage: ((score/total)*100).toFixed(1) });
         localStorage.setItem('ce_exam_history', JSON.stringify(history));
-
-        alert(`Exam Submitted! Your Score: ${score} / ${total} (${((score/total)*100).toFixed(1)}%)`);
+        alert(`Exam Submitted! Score: ${score}/${total} (${((score/total)*100).toFixed(1)}%)`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function retakeExam(index) {
-        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        let recordEntry = history[index];
-        if (!recordEntry || !recordEntry.records) return alert("Could not load exam for retake.");
-
-        switchTab('generator', document.querySelectorAll('.nav-tab')[1]);
-        renderActiveExam(recordEntry.records, recordEntry.total * 4, 'EXAM_' + Date.now(), `Retake: ${recordEntry.examTitle}`);
     }
 
     function renderExamHistory() {
         const container = document.getElementById('history-records-container');
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        if (history.length === 0) { container.innerHTML = "No exam history recorded yet."; return; }
-
-        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th><th>Action</th></tr></thead><tbody>`;
-        history.forEach((h, idx) => {
-            html += `
-                <tr>
-                    <td>${h.date}</td>
-                    <td>${h.examTitle || 'Custom Quiz'}</td>
-                    <td><strong>${h.score} / ${h.total}</strong></td>
-                    <td>${h.percentage}%</td>
-                    <td><button type="button" class="action-btn" onclick="retakeExam(${idx})">🔄 Retake</button></td>
-                </tr>
-            `;
-        });
+        if (history.length === 0) { container.innerHTML = "No exam history recorded."; return; }
+        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th></tr></thead><tbody>`;
+        history.history?.forEach?.(h => { html += `<tr><td>${h.date}</td><td>${h.examTitle}</td><td><strong>${h.score}/${h.total}</strong></td><td>${h.percentage}%</td></tr>`; }) || 
+        history.forEach(h => { html += `<tr><td>${h.date}</td><td>${h.examTitle}</td><td><strong>${h.score}/${h.total}</strong></td><td>${h.percentage}%</td></tr>`; });
         html += `</tbody></table>`;
         container.innerHTML = html;
     }
