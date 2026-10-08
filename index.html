@@ -83,7 +83,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     justify-content: center;
     align-items: center;
     color: rgba(0, 51, 0, 0.16);
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
     transform: rotate(-25deg);
     user-select: none;
@@ -167,7 +167,7 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 .choice-item.selected-highlight { background: #e8f5e9; border-color: #2e7d32; font-weight: bold; color: #003300; box-shadow: inset 4px 0 0 #2e7d32; }
 .choice-item input[type="radio"] { display: none; }
 
-.solution-box { background: #e8f5e9; padding: 12px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 14px; line-height: 1.5; }
+.solution-box { background: #e8f5e9; padding: 15px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 14px; line-height: 1.6; color: #111; word-break: break-word; }
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
 table.bank-table { width: 100%; border-collapse: collapse; min-width: 450px; }
 table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
@@ -212,7 +212,7 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- DYNAMIC WATERMARK LAYER (5 PCS, 16% OPACITY) -->
+<!-- DYNAMIC WATERMARK LAYER (5 PCS, EMAIL HANDLE ONLY, 16% OPACITY) -->
 <div id="watermark-layer">
     <div class="watermark-grid">
         <div class="watermark-item"><span id="wm-1"></span></div>
@@ -357,6 +357,7 @@ table.bank-table th { background: #003300; color: white; }
         const errDiv = document.getElementById('auth-error-msg');
         errDiv.innerText = "";
 
+        // 1. If inside MS Teams, extract context & flood into database
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
@@ -376,6 +377,7 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
+        // 2. If opened in a standard web browser, use Supabase Azure OAuth
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: { scopes: 'email profile', redirectTo: window.location.origin + window.location.pathname }
@@ -406,11 +408,11 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function handleTeamsAutoLogin(email, fullName, sectionName) {
-        let { data: studentRecord } = await supabaseClient
+        let { data: studentRecord, error: selectErr } = await supabaseClient
             .from(activeStudentTable)
             .select('*')
             .eq('email', email)
-            .single();
+            .maybeSingle();
 
         if (!studentRecord) {
             let nameParts = fullName.split(" ");
@@ -426,12 +428,12 @@ table.bank-table th { background: #003300; color: white; }
                 review_section: sectionName
             };
 
+            // Flood/insert the new record into Supabase
             const { error: insertErr } = await supabaseClient.from(activeStudentTable).insert([newStudent]);
-            if (!insertErr) {
-                studentRecord = newStudent;
-            } else {
-                studentRecord = newStudent;
+            if (insertErr) {
+                console.error("Supabase insert error (Check RLS Policies):", insertErr.message);
             }
+            studentRecord = newStudent;
         } else if (sectionName && !studentRecord.review_section) {
             studentRecord.review_section = sectionName;
             await supabaseClient.from(activeStudentTable).update({ review_section: sectionName }).eq('id', studentRecord.id);
@@ -444,7 +446,11 @@ table.bank-table th { background: #003300; color: white; }
     function generateWatermark(student) {
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
-        const watermarkText = `${student.given_name || ''} ${student.surname || ''} (${student.id})`;
+        
+        // Extract email handle before '@' (e.g., user@gmail.com -> user)
+        let emailHandle = student.email ? student.email.split('@')[0] : (student.given_name || 'student');
+        const watermarkText = `${emailHandle} (${student.id || ''})`;
+
         document.getElementById('wm-1').innerText = watermarkText;
         document.getElementById('wm-2').innerText = watermarkText;
         document.getElementById('wm-3').innerText = watermarkText;
@@ -470,14 +476,24 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // 1. Check saved session instantly
+        // 1. Check if Supabase redirected back with an OAuth session from browser login
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+            const user = session.user;
+            const email = user.email;
+            const fullName = user.user_metadata?.full_name || user.user_metadata?.name || "Browser Student";
+            await handleTeamsAutoLogin(email, fullName, "Web Browser Login");
+            return;
+        }
+
+        // 2. Check saved local session instantly
         const savedSession = localStorage.getItem('ri_student_session');
         if (savedSession) {
             enterPortalApp(JSON.parse(savedSession));
             return;
         }
 
-        // 2. Fast non-blocking MS Teams check with a 500ms strict timeout
+        // 3. Fast non-blocking MS Teams check with a 500ms strict timeout
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
@@ -629,18 +645,26 @@ table.bank-table th { background: #003300; color: white; }
             <label class="choice-item"><input type="radio" name="daily_ans" value="B"> B. ${q.options.B}</label>
             <label class="choice-item"><input type="radio" name="daily_ans" value="C"> C. ${q.options.C}</label>
             <label class="choice-item"><input type="radio" name="daily_ans" value="D"> D. ${q.options.D}</label>
-            <button type="button" onclick="checkDailyAnswer('${q.correct}')" class="primary-btn" style="margin-top:12px;">Submit Answer</button>
+            <button type="button" onclick="checkDailyAnswer('${q.correct}', '${record.id}')" class="primary-btn" style="margin-top:12px;">Submit Answer</button>
             <div id="daily-feedback" style="margin-top:12px; display:none; font-size:14px;"></div>
+            <div id="daily_solution_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || 'No solution provided.'}</div>
         `;
         setupChoiceHighlighting(container);
         if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
     }
 
-    function checkDailyAnswer(correctOpt) {
+    function checkDailyAnswer(correctOpt, recordId) {
         const selected = document.querySelector('input[name="daily_ans"]:checked');
         const feedback = document.getElementById('daily-feedback');
+        const solBox = document.getElementById(`daily_solution_${recordId}`);
+        
         feedback.style.display = 'block';
-        if (!selected) { feedback.innerHTML = "<span style='color:orange;'>Please select an option first.</span>"; return; }
+        if (solBox) solBox.style.display = 'block';
+
+        if (!selected) { 
+            feedback.innerHTML = "<span style='color:orange;'>Please select an option first. Solution is displayed below.</span>"; 
+            return; 
+        }
         if (selected.value === correctOpt) {
             feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
         } else {
@@ -732,7 +756,7 @@ table.bank-table th { background: #003300; color: white; }
                 `;
             });
 
-            htmlContent += `<div id="solution_block_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || ''}</div>`;
+            htmlContent += `<div id="solution_block_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || 'No solution provided.'}</div>`;
             cardDiv.innerHTML = htmlContent;
             paper.appendChild(cardDiv);
             setupChoiceHighlighting(cardDiv);
@@ -789,4 +813,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-</html>
+    </html>
