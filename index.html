@@ -158,8 +158,8 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-.student-image-display { width: 100%; max-width: 100%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
-@media (min-width: 768px) { .student-image-display { width: 50%; max-width: 80%; height: auto; object-fit: contain; } }
+.student-image-display { width: 100%; max-width: 40%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
+@media (min-width: 768px) { .student-image-display { width: 40%; max-width: 40%; height: auto; object-fit: contain; } }
 
 .choice-item { display: block; font-weight: normal; margin: 8px 0; cursor: pointer; background: #fafafa; padding: 12px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 14px; transition: all 0.15s ease; }
 .choice-item:hover { background: #f0f7f0; border-color: #003300; }
@@ -353,9 +353,16 @@ table.bank-table th { background: #003300; color: white; }
 
     async function loginWithMicrosoft() {
         if (typeof microsoftTeams !== 'undefined') {
-            switchAuthTab('id');
-            document.getElementById('auth-error-msg').innerText = "Please use your Student ID login for instant access inside Teams!";
-            return;
+            try {
+                await microsoftTeams.app.initialize();
+                const context = await microsoftTeams.app.getContext();
+                if (context && context.user) {
+                    await handleTeamsAutoLogin(context.user.loginHint || context.user.userPrincipalName, context.user.displayName, context.team?.displayName || context.channel?.displayName);
+                    return;
+                }
+            } catch (err) {
+                console.log("Teams login fallback triggered:", err);
+            }
         }
 
         const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -385,6 +392,50 @@ table.bank-table th { background: #003300; color: white; }
 
         localStorage.setItem('ri_student_session', JSON.stringify(data));
         enterPortalApp(data);
+    }
+
+    async function handleTeamsAutoLogin(email, fullName, sectionName) {
+        if (!email) {
+            document.getElementById('auth-error-msg').innerText = "Could not retrieve email from Microsoft Teams.";
+            return;
+        }
+
+        // Check if student exists in Supabase
+        let { data: studentRecord } = await supabaseClient
+            .from(activeStudentTable)
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (!studentRecord) {
+            // Auto-register student on the fly if opening via Teams
+            let nameParts = (fullName || "RI Student").split(" ");
+            let given = nameParts[0] || "Student";
+            let surname = nameParts.slice(1).join(" ") || "Reviewee";
+            let generatedId = 'MS-' + Math.floor(100000 + Math.random() * 900000);
+
+            let newStudent = {
+                id: generatedId,
+                email: email,
+                given_name: given,
+                surname: surname,
+                review_section: sectionName || 'MS Teams Enrolled'
+            };
+
+            const { error: insertErr } = await supabaseClient.from(activeStudentTable).insert([newStudent]);
+            if (!insertErr) {
+                studentRecord = newStudent;
+            } else {
+                // Fallback session object if insert fails due to network/permissions
+                studentRecord = newStudent;
+            }
+        } else if (sectionName && !studentRecord.review_section) {
+            studentRecord.review_section = sectionName;
+            await supabaseClient.from(activeStudentTable).update({ review_section: sectionName }).eq('id', studentRecord.id);
+        }
+
+        localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
+        enterPortalApp(studentRecord);
     }
 
     function generateWatermark(student) {
@@ -424,26 +475,13 @@ table.bank-table th { background: #003300; color: white; }
                     setTimeout(() => resolve(null), 1500);
                 });
                 
-                if (context && context.user && context.user.loginHint) {
-                    const teamsEmail = context.user.loginHint;
+                if (context && context.user && (context.user.loginHint || context.user.userPrincipalName)) {
+                    const teamsEmail = context.user.loginHint || context.user.userPrincipalName;
+                    const teamsName = context.user.displayName || "RI Student";
                     const teamsSection = context.team?.displayName || context.channel?.displayName || null;
 
-                    const { data: studentRecord } = await supabaseClient
-                        .from(activeStudentTable)
-                        .select('*')
-                        .eq('email', teamsEmail)
-                        .single();
-
-                    if (studentRecord) {
-                        if (teamsSection && !studentRecord.review_section) {
-                            studentRecord.review_section = teamsSection;
-                            await supabaseClient.from(activeStudentTable).update({ review_section: teamsSection }).eq('id', studentRecord.id);
-                        }
-
-                        localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
-                        enterPortalApp(studentRecord);
-                        return;
-                    }
+                    await handleTeamsAutoLogin(teamsEmail, teamsName, teamsSection);
+                    return;
                 }
             } catch (err) {
                 console.log("Teams SDK context handshake skipped or failed:", err);
