@@ -10,6 +10,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
+<!-- Microsoft Teams JS SDK (Version 2.19) -->
+<script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
+
 <!-- Supabase JS Client CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -58,10 +61,6 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     margin-top: 10px;
 }
 .ms-btn:hover { background: #1f1f1f; }
-.divider { display: flex; align-items: center; text-align: center; margin: 15px 0; color: #888; font-size: 12px; }
-.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
-.divider::before { margin-right: .5em; }
-.divider::after { margin-left: .5em; }
 
 /* DYNAMIC WATERMARK (4 Balanced, Larger, Faint Sections) */
 #watermark-layer {
@@ -416,7 +415,6 @@ table.bank-table th { background: #003300; color: white; }
 
         if (!studentId) { errDiv.innerText = "Please enter your Student ID."; return; }
 
-        // Query enrolled_students table by ID
         const { data, error } = await supabaseClient
             .from('enrolled_students')
             .select('*')
@@ -436,7 +434,6 @@ table.bank-table th { background: #003300; color: white; }
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
 
-        // Shortened text ending cleanly at ID/name to prevent long overlaps
         const watermarkText = `${student.name} ${student.surname} (${student.id})`;
         
         document.getElementById('wm-1').innerText = watermarkText;
@@ -460,7 +457,6 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('auth-wrapper').style.display = 'none';
         document.getElementById('main-portal-app').style.display = 'block';
 
-        // Display student badge in navbar
         const badge = document.getElementById('nav-student-badge');
         badge.innerText = `👤 ${studentData.name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
         badge.style.display = 'block';
@@ -470,7 +466,33 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Intercept Microsoft OAuth tokens on return
+        // 1. Check if running inside Microsoft Teams for seamless auto-login via SDK
+        if (typeof microsoftTeams !== 'undefined') {
+            try {
+                await microsoftTeams.app.initialize();
+                const context = await microsoftTeams.app.getContext();
+                
+                if (context && context.user && context.user.loginHint) {
+                    const teamsEmail = context.user.loginHint;
+
+                    const { data: studentRecord } = await supabaseClient
+                        .from('enrolled_students')
+                        .select('*')
+                        .eq('email', teamsEmail)
+                        .single();
+
+                    if (studentRecord) {
+                        localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
+                        enterPortalApp(studentRecord);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log("Not inside Teams or SSO context unavailable, falling back to standard checks.");
+            }
+        }
+
+        // 2. Intercept Microsoft OAuth tokens on return URL
         if (window.location.hash && window.location.hash.includes('access_token')) {
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session && data.session.user) {
@@ -498,7 +520,7 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
-        // Check active Supabase auth session
+        // 3. Check active Supabase auth session
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session && session.user) {
             const userEmail = session.user.email;
@@ -512,7 +534,7 @@ table.bank-table th { background: #003300; color: white; }
             return;
         }
 
-        // Check local storage student ID session fallback
+        // 4. Check local storage student ID session fallback
         const savedSession = localStorage.getItem('ri_student_session');
         if (savedSession) {
             enterPortalApp(JSON.parse(savedSession));
