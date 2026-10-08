@@ -62,7 +62,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ms-btn:hover { background: #1f1f1f; }
 
-/* DYNAMIC WATERMARK */
+/* DYNAMIC WATERMARK (5 PCS, 18% VISIBILITY) */
 #watermark-layer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -76,13 +76,13 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     width: 100%; height: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
 }
 .watermark-item {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: rgba(0, 51, 0, 0.045);
+    color: rgba(0, 51, 0, 0.18);
     font-size: 22px;
     font-weight: bold;
     transform: rotate(-25deg);
@@ -211,13 +211,14 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- DYNAMIC WATERMARK LAYER -->
+<!-- DYNAMIC WATERMARK LAYER (5 PIECES) -->
 <div id="watermark-layer">
     <div class="watermark-grid">
         <div class="watermark-item"><span id="wm-1"></span></div>
         <div class="watermark-item"><span id="wm-2"></span></div>
         <div class="watermark-item"><span id="wm-3"></span></div>
         <div class="watermark-item"><span id="wm-4"></span></div>
+        <div class="watermark-item"><span id="wm-5"></span></div>
     </div>
 </div>
 
@@ -355,7 +356,6 @@ table.bank-table th { background: #003300; color: white; }
         const errDiv = document.getElementById('auth-error-msg');
         errDiv.innerText = "";
 
-        // If inside Microsoft Teams, extract context and auto-register/login
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
@@ -375,7 +375,6 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
-        // Standard Web Browser OAuth Fallback
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: { scopes: 'email profile', redirectTo: window.location.origin + window.location.pathname }
@@ -406,14 +405,12 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function handleTeamsAutoLogin(email, fullName, sectionName) {
-        // 1. Check if student already exists in Supabase by email
         let { data: studentRecord } = await supabaseClient
             .from(activeStudentTable)
             .select('*')
             .eq('email', email)
             .single();
 
-        // 2. If NOT found in Supabase, create/flood them in automatically
         if (!studentRecord) {
             let nameParts = fullName.split(" ");
             let given = nameParts[0] || "Student";
@@ -428,12 +425,10 @@ table.bank-table th { background: #003300; color: white; }
                 review_section: sectionName
             };
 
-            // Flood/insert the new record into Supabase
             const { error: insertErr } = await supabaseClient.from(activeStudentTable).insert([newStudent]);
             if (!insertErr) {
                 studentRecord = newStudent;
             } else {
-                // Fallback local session if offline or restriction blocks insert
                 studentRecord = newStudent;
             }
         } else if (sectionName && !studentRecord.review_section) {
@@ -453,6 +448,7 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('wm-2').innerText = watermarkText;
         document.getElementById('wm-3').innerText = watermarkText;
         document.getElementById('wm-4').innerText = watermarkText;
+        document.getElementById('wm-5').innerText = watermarkText;
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -473,21 +469,21 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // 1. Check if a local session is already saved
+        // 1. Check saved session instantly
         const savedSession = localStorage.getItem('ri_student_session');
         if (savedSession) {
             enterPortalApp(JSON.parse(savedSession));
             return;
         }
 
-        // 2. If inside MS Teams, optionally auto-detect context if initialized
+        // 2. Fast non-blocking MS Teams check with a 500ms strict timeout
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
-                const context = await new Promise((resolve) => {
-                    microsoftTeams.app.getContext().then(resolve).catch(() => resolve(null));
-                    setTimeout(() => resolve(null), 1000);
-                });
+                const context = await Promise.race([
+                    microsoftTeams.app.getContext(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 500))
+                ]);
                 
                 if (context && context.user && (context.user.loginHint || context.user.userPrincipalName)) {
                     const teamsEmail = context.user.loginHint || context.user.userPrincipalName;
@@ -498,13 +494,9 @@ table.bank-table th { background: #003300; color: white; }
                     return;
                 }
             } catch (err) {
-                console.log("Teams background auto-handshake note:", err);
+                console.log("Teams quick-handshake bypassed or timed out:", err);
             }
         }
-
-        // 3. Otherwise, show login screen
-        document.getElementById('auth-wrapper').style.display = 'flex';
-        document.getElementById('main-portal-app').style.display = 'none';
     }
 
     async function logoutSession() {
