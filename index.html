@@ -398,6 +398,15 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function loginWithMicrosoft() {
+        if (typeof microsoftTeams !== 'undefined') {
+            // Inside Microsoft Teams iframe, direct popup OAuth fails or blanks out.
+            // Guide them cleanly to use their Student ID login tab instead.
+            switchAuthTab('id');
+            document.getElementById('auth-error-msg').innerText = "Please use your Student ID login for instant access inside Teams!";
+            return;
+        }
+
+        // Standard browser OAuth fallback
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: {
@@ -496,7 +505,7 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
-        // 2. Intercept Microsoft OAuth tokens on return URL
+        // 2. Intercept Microsoft OAuth tokens on return URL (Web browser flow)
         if (window.location.hash && window.location.hash.includes('access_token')) {
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session && data.session.user) {
