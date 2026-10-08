@@ -15,7 +15,7 @@
 
 <style>
 * { box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; -webkit-text-size-adjust: 100%; }
+body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; -webkit-text-size-adjust: 100%; transition: filter 0.2s ease; }
 
 /* AUTH SCREEN STYLES */
 #auth-wrapper {
@@ -62,6 +62,25 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
 .divider::before { margin-right: .5em; }
 .divider::after { margin-left: .5em; }
+
+/* WATERMARK OVERLAY (Faint & Non-Disruptive) */
+#watermark-layer {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+    display: none;
+}
+.watermark-text {
+    position: absolute;
+    color: rgba(0, 51, 0, 0.04); /* ~95-96% transparent / 4% opacity for comfortable reading */
+    font-size: 15px;
+    font-weight: bold;
+    transform: rotate(-30deg);
+    user-select: none;
+    white-space: nowrap;
+}
 
 /* PORTAL STYLES */
 .ri-navbar {
@@ -178,54 +197,47 @@ table.bank-table th { background: #003300; color: white; }
         <h2 style="font-size: 18px; color: #003300; margin-top: 0;">CE Student Portal Login</h2>
         
         <div class="auth-tabs">
-            <div class="auth-tab active" onclick="switchAuthTab('email')">Email / Password</div>
-            <div class="auth-tab" onclick="switchAuthTab('code')">Enrollment Code</div>
+            <div class="auth-tab active" onclick="switchAuthTab('microsoft')">Microsoft Login</div>
+            <div class="auth-tab" onclick="switchAuthTab('id')">Student ID Login</div>
         </div>
 
-        <!-- Microsoft Login -->
-        <button type="button" class="ms-btn" onclick="loginWithMicrosoft()">
-            <svg width="18" height="18" viewBox="0 0 21 21">
-                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-            </svg>
-            Sign in with Microsoft Account
-        </button>
-
-        <div class="divider">OR</div>
-
-        <!-- EMAIL & PASSWORD SECTION -->
-        <div id="auth-email-section" class="auth-form-section active">
-            <div class="form-group">
-                <label>Email Address:</label>
-                <input type="email" id="auth-email" placeholder="student@example.com">
-            </div>
-            <div class="form-group">
-                <label>Password:</label>
-                <input type="password" id="auth-password" placeholder="••••••••">
-            </div>
-            <button type="button" onclick="handleEmailAuth('signin')" class="primary-btn">Sign In</button>
-            <button type="button" onclick="handleEmailAuth('signup')" style="background:transparent; color:#003300; border:none; width:100%; margin-top:8px; cursor:pointer; font-size:12px; font-weight:bold;">Don't have an account? Sign Up</button>
+        <!-- MICROSOFT LOGIN SECTION -->
+        <div id="auth-microsoft-section" class="auth-form-section active">
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Sign in securely using your authorized Microsoft account.</p>
+            <button type="button" class="ms-btn" onclick="loginWithMicrosoft()">
+                <svg width="18" height="18" viewBox="0 0 21 21">
+                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                </svg>
+                Sign in with Microsoft
+            </button>
         </div>
 
-        <!-- ENROLLMENT CODE SECTION -->
-        <div id="auth-code-section" class="auth-form-section">
+        <!-- STUDENT ID ENROLLMENT CODE SECTION -->
+        <div id="auth-id-section" class="auth-form-section">
             <div class="form-group">
-                <label>Unique Enrollment Code / Review ID:</label>
-                <input type="text" id="auth-code-input" placeholder="e.g., RI-CE-2026-XXXX">
+                <label>Enter Your Student ID:</label>
+                <input type="text" id="auth-id-input" placeholder="e.g., 2026-00123">
             </div>
-            <button type="button" onclick="handleEnrollmentCodeLogin()" class="primary-btn">Verify & Enter Portal</button>
+            <button type="button" onclick="handleStudentIdLogin()" class="primary-btn">Verify & Enter Portal</button>
         </div>
 
-        <div id="auth-error-msg" style="color:red; font-size:12px; margin-top:10px;"></div>
+        <div id="auth-error-msg" style="color:red; font-size:12px; margin-top:12px; font-weight:bold;"></div>
     </div>
 </div>
+
+<!-- WATERMARK LAYER -->
+<div id="watermark-layer"></div>
 
 <!-- MAIN PORTAL CONTAINER (Hidden until authenticated) -->
 <div id="main-portal-app" style="display:none;">
     <div class="ri-navbar">
-        <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
+            <span id="nav-student-badge" style="color:#ccff00; font-size:13px; font-weight:bold; display:none;"></span>
+        </div>
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
             <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
@@ -343,41 +355,22 @@ table.bank-table th { background: #003300; color: white; }
 
     let localDB = [];
 
-    // --- AUTHENTICATION LOGIC ---
+    // --- AUTHENTICATION & SECURITY LOGIC ---
     function switchAuthTab(type) {
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.auth-form-section').forEach(s => s.classList.remove('active'));
-        if (type === 'email') {
+        if (type === 'microsoft') {
             document.querySelectorAll('.auth-tab')[0].classList.add('active');
-            document.getElementById('auth-email-section').classList.add('active');
+            document.getElementById('auth-microsoft-section').classList.add('active');
         } else {
             document.querySelectorAll('.auth-tab')[1].classList.add('active');
-            document.getElementById('auth-code-section').classList.add('active');
+            document.getElementById('auth-id-section').classList.add('active');
         }
         document.getElementById('auth-error-msg').innerText = "";
     }
 
-    async function handleEmailAuth(mode) {
-        const email = document.getElementById('auth-email').value.trim();
-        const password = document.getElementById('auth-password').value.trim();
-        const errDiv = document.getElementById('auth-error-msg');
-        errDiv.innerText = "";
-
-        if (!email || !password) { errDiv.innerText = "Please enter email and password."; return; }
-
-        if (mode === 'signup') {
-            const { data, error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) errDiv.innerText = error.message;
-            else alert("Sign up successful! Please check your email for confirmation or log in.");
-        } else {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) errDiv.innerText = error.message;
-            else checkUserSession();
-        }
-    }
-
     async function loginWithMicrosoft() {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: {
                 scopes: 'email profile',
@@ -387,70 +380,137 @@ table.bank-table th { background: #003300; color: white; }
         if (error) document.getElementById('auth-error-msg').innerText = error.message;
     }
 
-    async function handleEnrollmentCodeLogin() {
-        const code = document.getElementById('auth-code-input').value.trim();
+    async function handleStudentIdLogin() {
+        const studentId = document.getElementById('auth-id-input').value.trim();
         const errDiv = document.getElementById('auth-error-msg');
         errDiv.innerText = "";
 
-        if (!code) { errDiv.innerText = "Please enter your enrollment code."; return; }
+        if (!studentId) { errDiv.innerText = "Please enter your Student ID."; return; }
 
+        // Query enrolled_students table by ID
         const { data, error } = await supabaseClient
             .from('enrolled_students')
             .select('*')
-            .eq('enrollment_code', code)
+            .eq('id', studentId)
             .single();
 
         if (error || !data) {
-            errDiv.innerText = "Invalid enrollment code. Please check with Review Innovations admin.";
+            errDiv.innerText = "Student ID not found in the official Review Innovations roster.";
             return;
         }
 
-        localStorage.setItem('ri_student_code_session', JSON.stringify(data));
-        enterPortalApp();
+        localStorage.setItem('ri_student_session', JSON.stringify(data));
+        enterPortalApp(data);
     }
 
-    function enterPortalApp() {
+    function generateWatermark(student) {
+        const layer = document.getElementById('watermark-layer');
+        layer.innerHTML = "";
+        layer.style.display = 'block';
+
+        const textContent = `${student.name} ${student.surname} (${student.id}) - RI CE Portal`;
+
+        for (let i = 0; i < 15; i++) {
+            for (let j = 0; j < 10; j++) {
+                let div = document.createElement('div');
+                div.className = 'watermark-text';
+                div.innerText = textContent;
+                div.style.top = `${j * 120}px`;
+                div.style.left = `${i * 260 - (j % 2 * 50)}px`;
+                layer.appendChild(div);
+            }
+        }
+    }
+
+    // Anti-snoop blur protection when switching tabs
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            document.body.style.filter = 'blur(10px)';
+        } else {
+            document.body.style.filter = 'none';
+        }
+    });
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    function enterPortalApp(studentData) {
         document.getElementById('auth-wrapper').style.display = 'none';
         document.getElementById('main-portal-app').style.display = 'block';
+
+        // Display student badge in navbar
+        const badge = document.getElementById('nav-student-badge');
+        badge.innerText = `👤 ${studentData.name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
+        badge.style.display = 'inline-block';
+
+        generateWatermark(studentData);
         fetchStudentQuestionBank();
     }
 
     async function checkUserSession() {
-        // Intercept OAuth hash tokens directly from Microsoft redirect
+        // Intercept Microsoft OAuth tokens on return
         if (window.location.hash && window.location.hash.includes('access_token')) {
             const { data } = await supabaseClient.auth.getSession();
-            if (data && data.session) {
+            if (data && data.session && data.session.user) {
+                const userEmail = data.session.user.email;
+                const userName = data.session.user.user_metadata?.full_name || userEmail;
+
+                // Check enrollment by email or match with enrolled_students
+                const { data: studentRecord } = await supabaseClient
+                    .from('enrolled_students')
+                    .select('*')
+                    .eq('email', userEmail)
+                    .single();
+
                 window.history.replaceState({}, document.title, window.location.pathname);
-                enterPortalApp();
-                return;
+
+                if (studentRecord) {
+                    localStorage.setItem('ri_student_session', JSON.stringify(studentRecord));
+                    enterPortalApp(studentRecord);
+                    return;
+                } else {
+                    // Fallback object if email matches MS auth but not explicitly in table yet
+                    const fallbackStudent = { id: 'MS-AUTH', name: userName, surname: '', review_section: 'Microsoft User' };
+                    localStorage.setItem('ri_student_session', JSON.stringify(fallbackStudent));
+                    enterPortalApp(fallbackStudent);
+                    return;
+                }
             }
         }
 
-        // Check standard Supabase session
+        // Check active Supabase auth session
         const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            enterPortalApp();
+        if (session && session.user) {
+            const userEmail = session.user.email;
+            const { data: studentRecord } = await supabaseClient
+                .from('enrolled_students')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
+            
+            enterPortalApp(studentRecord || { id: 'MS-AUTH', name: session.user.email, surname: '', review_section: 'Active' });
+            return;
+        }
+
+        // Check local storage student ID session fallback
+        const savedSession = localStorage.getItem('ri_student_session');
+        if (savedSession) {
+            enterPortalApp(JSON.parse(savedSession));
         } else {
-            // Check fallback enrollment code session
-            const codeSession = localStorage.getItem('ri_student_code_session');
-            if (codeSession) {
-                enterPortalApp();
-            } else {
-                document.getElementById('auth-wrapper').style.display = 'flex';
-                document.getElementById('main-portal-app').style.display = 'none';
-            }
+            document.getElementById('auth-wrapper').style.display = 'flex';
+            document.getElementById('main-portal-app').style.display = 'none';
         }
     }
 
     async function logoutSession() {
         await supabaseClient.auth.signOut();
-        localStorage.removeItem('ri_student_code_session');
+        localStorage.removeItem('ri_student_session');
+        document.getElementById('watermark-layer').style.display = 'none';
         document.getElementById('main-portal-app').style.display = 'none';
         document.getElementById('auth-wrapper').style.display = 'flex';
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Run session check immediately on page load
+    // Run session check on load
     window.addEventListener('DOMContentLoaded', () => {
         checkUserSession();
     });
