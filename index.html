@@ -62,6 +62,46 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ms-btn:hover { background: #1f1f1f; }
 
+/* CUSTOM MODAL OVERLAY (REPLACES BROWSER ALERTS) */
+#custom-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+}
+.custom-modal-box {
+    background: white;
+    width: 100%;
+    max-width: 340px;
+    padding: 22px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.custom-modal-msg {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+.custom-modal-btn {
+    background: #003300;
+    color: #ccff00;
+    border: none;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+.custom-modal-btn:hover { background: #004d00; }
+
 /* DYNAMIC WATERMARK (5 PCS, EMAIL HANDLE ONLY, 16% OPACITY) */
 #watermark-layer {
     position: fixed;
@@ -171,9 +211,9 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* IMAGE WIDTH SET TO 80% FOR MOBILE PHONES */
-.student-image-display { width: 80%; max-width: 80%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; object-fit: contain; }
-@media (min-width: 768px) { .student-image-display { width: 50%; max-width: 50%; height: auto; object-fit: contain; } }
+/* IMAGE WIDTH SET TO 95% FOR MOBILE PHONES */
+.student-image-display { width: 95%; max-width: 95%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; object-fit: contain; }
+@media (min-width: 768px) { .student-image-display { width: 55%; max-width: 55%; height: auto; object-fit: contain; } }
 
 .choice-item { display: block; font-weight: normal; margin: 8px 0; cursor: pointer; background: #fafafa; padding: 12px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 14px; transition: all 0.15s ease; }
 .choice-item:hover { background: #f0f7f0; border-color: #003300; }
@@ -188,6 +228,14 @@ table.bank-table th { background: #003300; color: white; }
 </style>
 </head>
 <body>
+
+<!-- CUSTOM MODAL DIALOG CONTAINER -->
+<div id="custom-modal-overlay">
+    <div class="custom-modal-box">
+        <div id="custom-modal-text" class="custom-modal-msg">Notification Message</div>
+        <button type="button" class="custom-modal-btn" onclick="closeCustomModal()">OK</button>
+    </div>
+</div>
 
 <!-- AUTHENTICATION SCREEN -->
 <div id="auth-wrapper" style="display:flex;">
@@ -352,6 +400,15 @@ table.bank-table th { background: #003300; color: white; }
 
     let localDB = [];
     const activeStudentTable = 'enrolled_students';
+
+    // Custom Modal Dialog Helper (Removes browser prompt domains)
+    function showModal(msg) {
+        document.getElementById('custom-modal-text').innerText = msg;
+        document.getElementById('custom-modal-overlay').style.display = 'flex';
+    }
+    function closeCustomModal() {
+        document.getElementById('custom-modal-overlay').style.display = 'none';
+    }
 
     function switchAuthTab(type) {
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -637,7 +694,6 @@ table.bank-table th { background: #003300; color: white; }
         if (record.solutionImages && record.solutionImages.length > 0) {
             record.solutionImages.forEach(img => { solHtml += `<img src="${img}" class="student-image-display">`; });
         } else if (record.images && record.images.length > 0 && (!record.solution || record.solution.trim() === "")) {
-            // Fallback to scenario/question image if no explicit text solution provided
             record.images.forEach(img => { solHtml += `<img src="${img}" class="student-image-display">`; });
         }
         return solHtml;
@@ -681,7 +737,7 @@ table.bank-table th { background: #003300; color: white; }
         const solBox = document.getElementById(`daily_solution_${recordId}`);
         
         if (!selected) {
-            alert("Please choose an answer before submitting.");
+            showModal("⚠️ Please choose an answer before submitting.");
             return;
         }
 
@@ -701,7 +757,7 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     function startCustomExam() {
-        if (localDB.length === 0) return alert("Database is empty!");
+        if (localDB.length === 0) { showModal("Database is empty!"); return; }
         const main = document.getElementById('gen-main').value;
         const sub = document.getElementById('gen-sub').value;
         const boardTerm = document.getElementById('gen-board-term').value;
@@ -722,7 +778,7 @@ table.bank-table th { background: #003300; color: white; }
             if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
         }
 
-        if (pool.length === 0) return alert("No questions available matching filters.");
+        if (pool.length === 0) { showModal("No questions available matching filters."); return; }
         let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
         let selectedRecords = [];
         let accumulatedQuestionsCount = 0;
@@ -799,14 +855,13 @@ table.bank-table th { background: #003300; color: white; }
         activeExamTimer = setInterval(() => {
             let m = Math.floor(timer / 60), s = timer % 60;
             badge.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            if (--timer < 0) { clearInterval(activeExamTimer); alert("Time's up!"); submitExam(); }
+            if (--timer < 0) { clearInterval(activeExamTimer); showModal("Time's up!"); submitExam(); }
         }, 1000);
     }
 
     function submitExam() {
         if (!currentExamSession) return;
 
-        // Check for any unanswered questions
         let firstUnansweredIdx = -1;
         for (let idx = 0; idx < currentExamSession.flattenList.length; idx++) {
             const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
@@ -817,7 +872,7 @@ table.bank-table th { background: #003300; color: white; }
         }
 
         if (firstUnansweredIdx !== -1) {
-            alert("⚠️ Please choose an answer for all questions before submitting.");
+            showModal("⚠️ Please choose an answer for all questions before submitting.");
             const targetElement = document.getElementById(`question_wrapper_${firstUnansweredIdx}`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -843,7 +898,7 @@ table.bank-table th { background: #003300; color: white; }
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
         history.unshift({ examTitle: currentExamSession.examTitle, date: new Date().toLocaleString(), score, total, percentage: ((score/total)*100).toFixed(1) });
         localStorage.setItem('ce_exam_history', JSON.stringify(history));
-        alert(`Exam Submitted! Score: ${score}/${total} (${((score/total)*100).toFixed(1)}%)`);
+        showModal(`Exam Submitted! Score: ${score}/${total} (${((score/total)*100).toFixed(1)}%)`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -859,4 +914,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-</html>
+                </html>
