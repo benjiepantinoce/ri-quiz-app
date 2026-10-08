@@ -1,315 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Innovations - CE Admin & Question Manager</title>
-    
-    <!-- KaTeX for Text & Math Rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-    <script src="https://unpkg.com/mathlive"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Innovations - RI Admin & Staff Portal</title>
 
-    <!-- Supabase JS Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase JS Client CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 10px; color: #333; -webkit-text-size-adjust: 100%; }
-        .container { max-width: 950px; margin: 0 auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #003300; text-align: center; margin-bottom: 2px; font-size: 22px; }
-        p.subtitle { text-align: center; color: #666; margin-bottom: 15px; font-size: 13px; }
-        
-        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; overflow-x: auto; }
-        .tab { padding: 10px 15px; cursor: pointer; font-weight: bold; background: #f1f1f1; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0; margin-right: 4px; color: #555; font-size: 13px; white-space: nowrap; }
-        .tab.active { background: white; color: #074b07; border-top: 3px solid #003300; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; }
 
-        .form-group { margin-bottom: 14px; }
-        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 13px; color: #003300; }
-        input[type="text"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        textarea { resize: vertical; height: 80px; }
-        .row { display: flex; gap: 10px; flex-direction: column; }
-        @media (min-width: 600px) { .row { flex-direction: row; } .row .form-group { flex: 1; } }
-        
-        .choice-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .choice-row label { width: 25px; font-weight: bold; font-size: 14px; margin: 0; }
-        .choice-input-wrapper { flex: 1; }
+/* NAVBAR */
+.ri-navbar {
+    background-color: #003300;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    height: 65px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.ri-logo-img { height: 40px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; background: #003300; padding: 2px; }
+.nav-title { color: #ccff00; font-size: 16px; font-weight: bold; }
 
-        .question-block-card { background: #fafbfc; border: 1px solid #cce0cc; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+.container { max-width: 950px; margin: 20px auto; background: white; padding: 25px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.card { background: #ffffff; border-bottom: 2px solid #e0e0e0; padding: 15px 10px; margin-bottom: 20px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #003300; }
+select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: #fff; }
+.row { display: flex; gap: 10px; flex-direction: column; }
+@media (min-width: 600px) { .row { flex-direction: row; } .row .form-group { flex: 1; } }
 
-        .casio-toolbar { 
-            position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 8px; 
-            background: #e4e9ec; padding: 10px; border: 2px solid #003300; border-radius: 6px; 
-            margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-        }
-        .toolbar-top-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-        .casio-toolbar button { background: #3b5998; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .casio-toolbar button:hover { background: #2d4373; }
-        .toolbar-section { display: flex; gap: 5px; align-items: center; border-right: 2px solid #cbd5e1; padding-right: 8px; margin-right: 4px; }
-        .toolbar-section:last-child { border-right: none; }
+button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px; font-size: 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
+button.primary-btn:hover { background: #004d00; }
+button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-        .equation-builder-container { 
-            display: flex; gap: 8px; align-items: center; background: #fff; padding: 5px; 
-            border-radius: 4px; border: 1px solid #ccc;
-        }
-        math-field { flex: 1; padding: 4px; font-size: 16px; border: none; outline: none; background: transparent; }
-        .insert-btn { background: #28a745 !important; font-size: 13px !important; padding: 8px 12px !important; }
-
-        .paste-zone { border: 2px dashed #003300; padding: 10px; text-align: center; background: #f9fbfb; border-radius: 4px; cursor: pointer; margin-bottom: 8px; font-size: 13px; color: #555; }
-        .image-gallery { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-        .image-thumb { position: relative; width: 80px; height: 80px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #fff; }
-        .image-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .image-thumb button { position: absolute; top: 2px; right: 2px; background: rgba(217, 83, 79, 0.9); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
-
-        .student-image-display { width: 100%; max-width: 100%; height: auto; margin: 10px auto; padding: 4px; background: #ffffff; border-radius: 4px; border: 1px solid #dcdcdc; display: block; }
-        button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px; font-size: 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
-        button.primary-btn:hover { background: #004d00; }
-        .success-msg { background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; font-weight: bold; display: none; border-left: 4px solid #4caf50; font-size: 13px; }
-
-        .student-preview-card { background: #fff; border: 1px solid #dcdcdc; padding: 15px; border-radius: 6px; }
-        .scenario-box-preview { background: #eef2f3; padding: 12px; border-left: 4px solid #003300; margin-bottom: 12px; border-radius: 4px; font-size: 13px; line-height: 1.5; }
-        .choices-preview label { display: block; font-weight: normal; margin: 6px 0; cursor: pointer; background: #fafafa; padding: 8px; border: 1px solid #eee; border-radius: 4px; font-size: 13px; }
-        .solution-preview-box { background: #e8f5e9; padding: 12px; margin-top: 12px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 13px; }
-
-        .filter-box { background: #f8f9fa; border: 1px solid #ccd1d9; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table.bank-table { width: 100%; border-collapse: collapse; min-width: 500px; margin-top: 10px; }
-        table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
-        table.bank-table th { background: #003300; color: white; }
-        .action-btns button { padding: 4px 8px; margin-right: 4px; font-size: 11px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; width: auto; }
-        .btn-edit { background: #20639b; color: white; }
-        .btn-delete { background: #d9534f; color: white; }
-    </style>
+.table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; }
+table.bank-table { width: 100%; border-collapse: collapse; min-width: 450px; }
+table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+table.bank-table th { background: #003300; color: white; }
+</style>
 </head>
 <body>
 
-<div class="container" id="admin-content">
-    <h1>CE Exam Admin Panel</h1>
-    <p class="subtitle">Supabase Backend Question Repository & Management</p>
+<div class="ri-navbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
+        <span class="nav-title">RI Staff & Instructor Management Panel</span>
+    </div>
+    <button type="button" onclick="logoutAdmin()" class="action-btn" style="background:#d9534f; display:none;" id="logout-btn">🔒 Lock Portal</button>
+</div>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('creator')">✏ Question Creator</div>
-        <div class="tab" onclick="switchTab('preview')">👁 Student Preview</div>
-        <div class="tab" onclick="switchTab('bank')">📂 Question Bank (<span id="bank-counter">0</span>)</div>
+<div class="container">
+    <!-- PASSCODE LOCK SCREEN -->
+    <div id="admin-lock-screen" class="card" style="text-align: center; padding: 40px; border:none;">
+        <h2 style="color: #003300; margin-top: 0;">🔒 RI Administration Access</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Enter your staff or instructor passcode to access backend management.</p>
+        <div style="max-width: 320px; margin: 0 auto;">
+            <input type="password" id="admin-passcode-input" placeholder="Enter Security Passcode" style="margin-bottom: 12px; text-align: center;">
+            <button type="button" onclick="verifyAdminPasscode()" class="primary-btn">Authenticate Portal</button>
+            <div id="admin-passcode-error" style="color:red; font-size:12px; margin-top:10px; font-weight:bold;"></div>
+        </div>
     </div>
 
-    <div id="success-alert" class="success-msg">Question successfully saved to Supabase!</div>
-
-    <!-- TAB 1: CREATOR -->
-    <div id="creator-tab" class="tab-content active">
+    <!-- STAFF VIEW: STUDENT BATCH MANAGER ONLY -->
+    <div id="admin-staff-content" style="display:none;">
+        <h2 style="font-size: 18px; color: #003300; margin-top:0;">👥 Staff Portal: Student Roster Manager</h2>
+        <p style="font-size: 13px; color: #666;">Manage active student batches, bulk-import CSVs, and update enrollments in Supabase.</p>
         
-        <!-- MASTER TOOLBAR -->
-        <div class="casio-toolbar">
-            <div class="toolbar-top-row">
-                <span style="font-size: 11px; font-weight: bold; color: #003300;">Format:</span>
-                <div class="toolbar-section">
-                    <button type="button" onclick="formatText('<b>', '</b>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><b>B</b></button>
-                    <button type="button" onclick="formatText('<i>', '</i>')" style="background: #fff; color: #333; border: 1px solid #ccc;"><i>I</i></button>
-                    <button type="button" onclick="formatText('<sub>', '</sub>')" style="background: #fff; color: #333; border: 1px solid #ccc;">₂ Sub</button>
-                    <button type="button" onclick="formatText('<sup>', '</sup>')" style="background: #fff; color: #333; border: 1px solid #ccc;">² Sup</button>
-                </div>
-                
-                <span style="font-size: 11px; font-weight: bold; color: #003300;">Math:</span>
-                <div class="toolbar-section">
-                    <button type="button" onclick="executeMathCommand('\\frac{#0}{#1}')">➗ Frac</button>
-                    <button type="button" onclick="executeMathCommand('\\sqrt{#0}')">√ Root</button>
-                    <button type="button" onclick="executeMathCommand('^{-1}')">x⁻¹</button>
-                    <button type="button" onclick="executeMathCommand('^2')">x²</button>
-                </div>
+        <div class="card">
+            <div class="form-group">
+                <label>Active Master Roster Table:</label>
+                <input type="text" value="enrolled_students" readonly style="background:#eef2f3; font-weight:bold;">
             </div>
 
-            <div class="equation-builder-container">
-                <span style="font-size: 12px; font-weight: bold; color: #555;">Builder:</span>
-                <math-field id="math-builder" placeholder="Type math formula..."></math-field>
-                <button type="button" class="insert-btn" onclick="insertBuiltEquation()">➕ Insert</button>
+            <!-- CSV BULK UPLOADER -->
+            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 15px;">
+                <label style="color: #003300;">📁 Bulk Import Students via CSV File:</label>
+                <p style="font-size: 12px; color: #555; margin-top: 2px;">Required CSV columns: <code>id, email, given_name, surname, review_section</code></p>
+                <input type="file" id="csv-file-input" accept=".csv" style="margin-top: 8px; background: white;">
+                <button type="button" onclick="handleCsvBulkUpload('csv-file-input', 'admin-roster-container')" class="primary-btn" style="margin-top: 10px; background: #20639b; color: white;">🚀 Upload & Bulk Insert CSV</button>
             </div>
-        </div>
 
-        <form id="question-form">
-            <input type="hidden" id="edit-mode-id" value="">
-            
-            <div class="row">
-                <div class="form-group">
-                    <label>Main Subject:</label>
-                    <select id="main-subject" onchange="populateSubSubjects('main-subject', 'sub-subject')" required>
-                        <option value="PSAD">PSAD (Principles of Structures & Design)</option>
-                        <option value="HPGE">HPGE (Hydraulics & Geotechnical)</option>
-                        <option value="MSTC">MSTC (Math, Surveying & Transportation)</option>
-                    </select>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Quick Add / Register Single Student:</label>
+                <div class="row">
+                    <div class="form-group"><input type="text" id="admin-add-id" placeholder="Student ID (e.g., 2027-001)"></div>
+                    <div class="form-group"><input type="text" id="admin-add-email" placeholder="Email Address"></div>
+                </div>
+                <div class="row">
+                    <div class="form-group"><input type="text" id="admin-add-given" placeholder="Given Name"></div>
+                    <div class="form-group"><input type="text" id="admin-add-surname" placeholder="Surname"></div>
                 </div>
                 <div class="form-group">
-                    <label>Sub-Subject:</label>
-                    <select id="sub-subject" required></select>
+                    <input type="text" id="admin-add-section" placeholder="Review Section (e.g., March 2027 MANILA B1 Review)">
                 </div>
+                <button type="button" onclick="adminAddStudent('admin-roster-container')" class="primary-btn">➕ Add Student to Roster</button>
             </div>
 
-            <div class="row">
-                <div class="form-group">
-                    <label>Situational Problem?</label>
-                    <select id="is-situational" onchange="toggleScenario()">
-                        <option value="Yes">Yes (Shares a Situation Passage)</option>
-                        <option value="No">No (Standalone Question)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- PAST BOARD EXAM TOGGLE & OPTIONAL MONTH/YEAR (SITUATION LEVEL - Visible only when Situational = Yes) -->
-            <div id="situation-board-container" class="form-group" style="background: #f4f9f4; padding: 10px; border: 1px solid #cce0cc; border-radius: 4px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0 0 8px 0; color: #003300;">
-                    <input type="checkbox" id="is-past-board-situation" onchange="toggleBoardDateFields()" style="width: 18px; height: 18px; cursor: pointer;">
-                    ⭐ Tag entire situation/set as a <strong>Past CE Board Exam</strong> problem
-                </label>
-                <div id="board-date-container" style="display: none; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #b2d8b2;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 11px;">Exam Month (Optional):</label>
-                        <select id="board-month" style="padding: 6px; font-size: 13px;">
-                            <option value="">-- Select Month --</option>
-                            <option value="March">March</option>
-                            <option value="April">April</option>
-                            <option value="May">May</option>
-                            <option value="September">September</option>
-                            <option value="October">October</option>
-                            <option value="November">November</option>
-                            <option value="December">December</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1;">
-                        <label style="font-size: 11px;">Exam Year (Optional):</label>
-                        <input type="text" id="board-year" placeholder="e.g., 2025" style="padding: 6px; font-size: 13px;">
-                    </div>
-                </div>
-            </div>
-
-            <div id="situation-id-group" class="form-group">
-                <label>Situation ID / Code:</label>
-                <input type="text" id="situation-code" placeholder="e.g., PSAD-SIT-001" required>
-            </div>
-
-            <div id="standalone-id-group" class="form-group" style="display:none;">
-                <label>Question ID / Code:</label>
-                <input type="text" id="standalone-code" placeholder="e.g., PSAD-RCD-001">
-            </div>
-
-            <div id="scenario-group" class="form-group">
-                <label>Situation / Passage Text:</label>
-                <textarea id="scenario-text" placeholder="Enter common data and references..." onfocus="setActiveField(this)"></textarea>
-                <div class="paste-zone" contenteditable="true" onpaste="handleScenarioPaste(event)">📋 Click & press <strong>Ctrl + V</strong> to paste situation figures</div>
-                <div id="image-gallery-container" class="image-gallery"></div>
-            </div>
-
-            <!-- QUESTION BLOCKS CONTAINER -->
-            <div id="question-blocks-container">
-                <div class="question-block-card" data-block-id="1">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #1</h4>
-                        <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
-                    </div>
-                    
-                    <!-- STANDALONE PAST BOARD EXAM TOGGLE (Visible only when Situational = No) -->
-                    <div id="standalone-board-toggle-1" class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
-                            <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
-                            ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
-                        </label>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Question Prompt:</label>
-                        <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea>
-                    </div>
-                    <label>Options:</label>
-                    <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
-                    <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
-                    <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
-                    <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
-
-                    <div class="form-group" style="margin-top: 10px;">
-                        <label>Correct Answer:</label>
-                        <select class="q-correct">
-                            <option value="A">Option A</option>
-                            <option value="B" selected>Option B</option>
-                            <option value="C">Option C</option>
-                            <option value="D">Option D</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Step-by-Step Solution:</label>
-                <textarea id="global-solution-text" placeholder="Detailed solution steps..." onfocus="setActiveField(this)"></textarea>
-                <div class="paste-zone" contenteditable="true" onpaste="handleSolutionPaste(event)" style="margin-top: 8px;">📋 Click & press <strong>Ctrl + V</strong> to paste solution figures</div>
-                <div id="solution-image-gallery-container" class="image-gallery"></div>
-            </div>
-
-            <div style="display: flex; gap: 8px; margin-top: 15px; flex-direction: column;">
-                <button type="button" onclick="addNewQuestionBlock()" class="primary-btn" style="background: #20639b;">➕ Add another question</button>
-                <button type="button" onclick="saveAndFinish(event)" class="primary-btn" id="save-btn-label">✅ Save to Supabase</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- TAB 2: STUDENT PREVIEW -->
-    <div id="preview-tab" class="tab-content">
-        <h3 style="font-size: 16px; color: #003300;">Live Student View Simulation</h3>
-        <div class="student-preview-card">
-            <div id="prev-situation-header" style="font-size: 13px; font-weight: bold; color: #003300; margin-bottom: 5px;"></div>
-            <div class="scenario-box-preview" id="prev-scenario-wrapper">
-                <strong>Situation:</strong><br>
-                <span id="prev-scenario">No situation text entered yet.</span>
-                <div id="prev-image-gallery" style="margin-top: 8px;"></div>
-            </div>
-            <div id="preview-questions-container"></div>
-            <div id="prev-solution-box" class="solution-preview-box">
-                <strong>Solution:</strong><br>
-                <div id="prev-solution-content">No solution provided yet.</div>
-                <div id="prev-solution-image-gallery" style="margin-top: 8px;"></div>
+            <div id="admin-roster-container" class="table-responsive" style="margin-top: 20px;">
+                Loading roster...
             </div>
         </div>
     </div>
 
-    <!-- TAB 3: QUESTION BANK -->
-    <div id="bank-tab" class="tab-content">
-        <h3 style="font-size: 16px; color: #003300;">Supabase Question Repository</h3>
-        <div class="filter-box">
-            <div class="row" style="margin-bottom: 10px;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Main Subject:</label>
-                    <select id="filter-main" onchange="updateFilterSubSubjects(); renderQuestionBankTable();">
-                        <option value="">-- All Main Subjects --</option>
-                        <option value="PSAD">PSAD</option>
-                        <option value="HPGE">HPGE</option>
-                        <option value="MSTC">MSTC</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Sub-Subject:</label>
-                    <select id="filter-sub" onchange="renderQuestionBankTable()">
-                        <option value="">-- All Sub-Subjects --</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Search ID / Text:</label>
-                    <input type="text" id="filter-search" placeholder="Keywords..." oninput="renderQuestionBankTable()">
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-            <button type="button" onclick="exportDatabase()" style="background: #20639b; color:white; padding: 8px 12px; font-size: 13px; border:none; border-radius:4px; cursor:pointer; flex:1;">📥 Export CSV</button>
-            <button type="button" onclick="clearEntireDatabase()" style="background: #d9534f; color:white; padding: 8px 12px; font-size: 13px; border:none; border-radius:4px; cursor:pointer; flex:1;">🗑️ Clear DB</button>
-        </div>
+    <!-- INSTRUCTOR VIEW: FULL ACCESS (STUDENTS + QUESTIONS) -->
+    <div id="admin-instructor-content" style="display:none;">
+        <h2 style="font-size: 18px; color: #003300; margin-top:0;">📚 Instructor Portal: Full Database Control</h2>
+        <p style="font-size: 13px; color: #666;">Full instructor access to student rosters and question bank databases.</p>
         
-        <div class="table-responsive">
-            <table class="bank-table">
-                <thead><tr><th>Code / ID</th><th>Subject</th><th>Prompt</th><th>Actions</th></tr></thead>
-                <tbody id="bank-table-body"></tbody>
-            </table>
+        <div class="card">
+            <div style="background:#e8f5e9; padding:12px; border-radius:6px; border-left:4px solid #2e7d32; margin-bottom:15px; font-size:13px;">
+                <strong>Instructor Access Active:</strong> You can manage student rosters below. (Question database tables can be managed here or via direct SQL).
+            </div>
+
+            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 15px;">
+                <label style="color: #003300;">📁 Bulk Import Students via CSV File:</label>
+                <input type="file" id="csv-file-input-inst" accept=".csv" style="margin-top: 8px; background: white;">
+                <button type="button" onclick="handleCsvBulkUpload('csv-file-input-inst', 'admin-roster-container-inst')" class="primary-btn" style="margin-top: 10px; background: #20639b; color: white;">🚀 Upload & Bulk Insert CSV</button>
+            </div>
+
+            <div id="admin-roster-container-inst" class="table-responsive" style="margin-top: 20px;">
+                Loading student roster...
+            </div>
         </div>
     </div>
 </div>
@@ -317,481 +132,145 @@
 <script>
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
+    
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    const activeStudentTable = 'enrolled_students';
 
-    let localDB = [];
+    // Role passcodes (Change these anytime)
+    const STAFF_PASSCODE = "ri-staff-2027";
+    const INSTRUCTOR_PASSCODE = "ri-instructor-2027";
 
-    async function loadDatabaseFromSupabase() {
-        const { data, error } = await supabaseClient.from('questions').select('*');
-        if (error) { console.error('Error loading questions:', error); return; }
-        localDB = data || [];
-        document.getElementById('bank-counter').innerText = localDB.length;
-        renderQuestionBankTable();
-    }
-    loadDatabaseFromSupabase();
+    function verifyAdminPasscode() {
+        const inputVal = document.getElementById('admin-passcode-input').value.trim();
+        const errDiv = document.getElementById('admin-passcode-error');
+        errDiv.innerText = "";
 
-    const subSubjectMap = {
-        "PSAD": ["Engineering Mechanics - Statics", "Strength of Materials", "Theory of Structures", "Reinforced Concrete Design", "Structural Steel Design", "Earthquake Design"],
-        "HPGE": ["Hydraulics", "Geotechnical Engineering"],
-        "MSTC": ["Algebra", "Trigonometry", "Plane and Solid Geometry", "Analytic Geometry", "Differential Calculus", "Integral Calculus", "Differential Equations", "Engineering Economy", "Engineering Mechanics - Dynamics", "Transportation Engineering", "Construction"]
-    };
-
-    function populateSubSubjects(mainId, subId, selectedValue = "") {
-        const mainSelect = document.getElementById(mainId);
-        const subSelect = document.getElementById(subId);
-        subSelect.innerHTML = "";
-        if (subSubjectMap[mainSelect.value]) {
-            subSubjectMap[mainSelect.value].forEach(sub => {
-                let opt = document.createElement('option');
-                opt.value = sub; opt.textContent = sub;
-                if (sub === selectedValue) opt.selected = true;
-                subSelect.appendChild(opt);
-            });
-        }
-    }
-
-    function updateFilterSubSubjects() {
-        const main = document.getElementById('filter-main').value;
-        const sub = document.getElementById('filter-sub');
-        sub.innerHTML = '<option value="">-- All Sub-Subjects --</option>';
-        if (subSubjectMap[main]) {
-            subSubjectMap[main].forEach(s => {
-                let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
-                sub.appendChild(opt);
-            });
-        }
-    }
-
-    populateSubSubjects('main-subject', 'sub-subject');
-
-    let attachedImages = [];
-    let attachedSolutionImages = [];
-    let activeFieldElement = document.getElementById('scenario-text');
-
-    function setActiveField(el) { if (!el.id.includes('code')) activeFieldElement = el; }
-
-    document.addEventListener('focusin', function(e) {
-        if ((e.target.tagName === 'INPUT' && e.target.type === 'text') || e.target.tagName === 'TEXTAREA') {
-            setActiveField(e.target);
-        }
-    });
-
-    document.getElementById('scenario-text').addEventListener('input', updatePreview);
-    document.getElementById('global-solution-text').addEventListener('input', updatePreview);
-
-    function toggleBoardDateFields() {
-        const isChecked = document.getElementById('is-past-board-situation').checked;
-        document.getElementById('board-date-container').style.display = isChecked ? 'flex' : 'none';
-    }
-
-    function executeMathCommand(cmd) {
-        let builder = document.getElementById('math-builder');
-        builder.focus();
-        builder.executeCommand(['insert', cmd]);
-    }
-
-    function insertBuiltEquation() {
-        let builder = document.getElementById('math-builder');
-        let latex = builder.getValue('latex');
-        if (!latex) return;
-        let target = activeFieldElement || document.querySelector('.q-text');
-        if (target) {
-            target.value += ` $${latex}$ `;
-            builder.setValue('');
-            updatePreview();
-        }
-    }
-
-    function formatText(s, e) {
-        let target = activeFieldElement || document.querySelector('.q-text');
-        if (target) {
-            let start = target.selectionStart;
-            let end = target.selectionEnd;
-            let val = target.value;
-            if (start !== undefined && end !== undefined && start !== end) {
-                target.value = val.substring(0, start) + s + val.substring(start, end) + e + val.substring(end);
-            } else { target.value += s + e; }
-            updatePreview();
-        }
-    }
-
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        if (tabName === 'creator') {
-            document.querySelectorAll('.tab')[0].classList.add('active');
-            document.getElementById('creator-tab').classList.add('active');
-        } else if (tabName === 'preview') {
-            document.querySelectorAll('.tab')[1].classList.add('active');
-            document.getElementById('preview-tab').classList.add('active');
-            updatePreview();
-        } else if (tabName === 'bank') {
-            document.querySelectorAll('.tab')[2].classList.add('active');
-            document.getElementById('bank-tab').classList.add('active');
-            renderQuestionBankTable();
-        }
-    }
-
-    function toggleScenario() {
-        const isSit = document.getElementById('is-situational').value === 'Yes';
-        document.getElementById('scenario-group').style.display = isSit ? 'block' : 'none';
-        document.getElementById('situation-id-group').style.display = isSit ? 'block' : 'none';
-        document.getElementById('standalone-id-group').style.display = isSit ? 'none' : 'block';
-        document.getElementById('situation-board-container').style.display = isSit ? 'block' : 'none';
-        
-        // Toggle visibility of standalone board toggles inside question cards
-        document.querySelectorAll('.standalone-board-toggle-wrapper').forEach(el => {
-            el.style.display = isSit ? 'none' : 'block';
-        });
-
-        updatePreview();
-    }
-
-    function handlePasteLogic(e, arr, renderFunc) {
-        let items = (e.clipboardData || e.originalEvent.clipboardData).items;
-        for (let i in items) {
-            if (items[i].kind === 'file') {
-                let reader = new FileReader();
-                reader.onload = ev => { arr.push(ev.target.result); renderFunc(); updatePreview(); };
-                reader.readAsDataURL(items[i].getAsFile());
-            }
-        }
-        e.preventDefault();
-    }
-
-    function handleScenarioPaste(e) { handlePasteLogic(e, attachedImages, renderGalleries); }
-    function handleSolutionPaste(e) { handlePasteLogic(e, attachedSolutionImages, renderSolutionGallery); }
-
-    function renderGalleries() {
-        const g1 = document.getElementById('image-gallery-container');
-        g1.innerHTML = "";
-        attachedImages.forEach((src, idx) => g1.innerHTML += `<div class="image-thumb"><img src="${src}"><button type="button" onclick="attachedImages.splice(${idx},1);renderGalleries();updatePreview()">X</button></div>`);
-    }
-
-    function renderSolutionGallery() {
-        const g2 = document.getElementById('solution-image-gallery-container');
-        g2.innerHTML = "";
-        attachedSolutionImages.forEach((src, idx) => g2.innerHTML += `<div class="image-thumb"><img src="${src}"><button type="button" onclick="attachedSolutionImages.splice(${idx},1);renderSolutionGallery();updatePreview()">X</button></div>`);
-    }
-
-    let blockCounter = 1;
-    function addNewQuestionBlock(qData = null) {
-        blockCounter++;
-        const container = document.getElementById('question-blocks-container');
-        const isSit = document.getElementById('is-situational').value === 'Yes';
-        const card = document.createElement('div');
-        card.className = 'question-block-card';
-        card.setAttribute('data-block-id', blockCounter);
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #${container.children.length + 1}</h4>
-                <button type="button" onclick="this.closest('.question-block-card').remove(); updatePreview();" style="background:#d9534f; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">Remove</button>
-            </div>
-            
-            <div class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px; display: ${isSit ? 'none' : 'block'};">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
-                    <input type="checkbox" class="q-is-past-board" ${qData && qData.isPastBoard ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
-                    ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
-                </label>
-            </div>
-
-            <div class="form-group">
-                <label>Question Prompt:</label>
-                <textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)">${qData ? qData.question : ''}</textarea>
-            </div>
-            <label>Options:</label>
-            <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" value="${qData ? qData.options.A : ''}" onfocus="setActiveField(this)" required></div></div>
-            <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" value="${qData ? qData.options.B : ''}" onfocus="setActiveField(this)" required></div></div>
-            <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" value="${qData ? qData.options.C : ''}" onfocus="setActiveField(this)" required></div></div>
-            <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" value="${qData ? qData.options.D : ''}" onfocus="setActiveField(this)" required></div></div>
-
-            <div class="form-group" style="margin-top: 10px;">
-                <label>Correct Answer:</label>
-                <select class="q-correct">
-                    <option value="A" ${qData && qData.correct === 'A' ? 'selected' : ''}>Option A</option>
-                    <option value="B" ${!qData || qData.correct === 'B' ? 'selected' : ''}>Option B</option>
-                    <option value="C" ${qData && qData.correct === 'C' ? 'selected' : ''}>Option C</option>
-                    <option value="D" ${qData && qData.correct === 'D' ? 'selected' : ''}>Option D</option>
-                </select>
-            </div>
-        `;
-        container.appendChild(card);
-        card.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', updatePreview));
-        updatePreview();
-    }
-
-    function updatePreview() {
-        const isSit = document.getElementById('is-situational').value === 'Yes';
-        const codeVal = isSit ? (document.getElementById('situation-code').value || "PSAD-SIT-001") : (document.getElementById('standalone-code').value || "PSAD-RCD-001");
-        const currentScenarioText = document.getElementById('scenario-text').value;
-        const globalSolText = document.getElementById('global-solution-text').value;
-        const blocks = document.querySelectorAll('.question-block-card');
-        
-        document.getElementById('prev-situation-header').innerText = `[${codeVal}]`;
-        
-        if (isSit) {
-            document.getElementById('prev-scenario-wrapper').style.display = 'block';
-            document.getElementById('prev-scenario').innerHTML = currentScenarioText ? currentScenarioText.replace(/\n/g, '<br>') : "No situation text entered yet.";
-            const prevGallery = document.getElementById('prev-image-gallery');
-            prevGallery.innerHTML = "";
-            attachedImages.forEach(imgSrc => {
-                let imgElement = document.createElement('img'); imgElement.src = imgSrc; imgElement.className = 'student-image-display'; prevGallery.appendChild(imgElement);
-            });
+        if (inputVal === STAFF_PASSCODE) {
+            document.getElementById('admin-lock-screen').style.display = 'none';
+            document.getElementById('admin-staff-content').style.display = 'block';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+            loadAdminStudents('admin-roster-container');
+        } else if (inputVal === INSTRUCTOR_PASSCODE) {
+            document.getElementById('admin-lock-screen').style.display = 'none';
+            document.getElementById('admin-instructor-content').style.display = 'block';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+            loadAdminStudents('admin-roster-container-inst');
         } else {
-            document.getElementById('prev-scenario-wrapper').style.display = 'none';
-        }
-
-        const container = document.getElementById('preview-questions-container');
-        const solContent = document.getElementById('prev-solution-content');
-        container.innerHTML = "";
-
-        blocks.forEach((block, index) => {
-            const qText = block.querySelector('.q-text').value || "Question prompt...";
-            const optA = block.querySelector('.q-opt-a').value || "A";
-            const optB = block.querySelector('.q-opt-b').value || "B";
-            const optC = block.querySelector('.q-opt-c').value || "C";
-            const optD = block.querySelector('.q-opt-d').value || "D";
-
-            let qDiv = document.createElement('div');
-            qDiv.style.cssText = "margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;";
-            qDiv.innerHTML = `
-                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">
-                    Question ${index + 1}: ${qText.replace(/\n/g, '<br>')}
-                </div>
-                <div class="choices-preview">
-                    <label><input type="radio"> A. ${optA}</label>
-                    <label><input type="radio"> B. ${optB}</label>
-                    <label><input type="radio"> C. ${optC}</label>
-                    <label><input type="radio"> D. ${optD}</label>
-                </div>
-            `;
-            container.appendChild(qDiv);
-        });
-
-        solContent.innerHTML = globalSolText ? globalSolText.replace(/\n/g, '<br>') : "No solution provided yet.";
-        const prevSolGallery = document.getElementById('prev-solution-image-gallery');
-        prevSolGallery.innerHTML = "";
-        attachedSolutionImages.forEach(imgSrc => {
-            let imgElement = document.createElement('img'); imgElement.src = imgSrc; imgElement.className = 'student-image-display'; prevSolGallery.appendChild(imgElement);
-        });
-
-        document.getElementById('prev-solution-box').style.display = 'block';
-
-        if (window.renderMathInElement) {
-            renderMathInElement(document.getElementById('preview-tab'), { delimiters: [{left: '$', right: '$', display: false}] });
+            errDiv.innerText = "Incorrect passcode. Please enter valid Staff or Instructor code.";
         }
     }
 
-    async function saveAndFinish(event) {
-        event.preventDefault();
-        const main = document.getElementById('main-subject').value;
-        const sub = document.getElementById('sub-subject').value;
-        const isSit = document.getElementById('is-situational').value;
-        const isPastBoardSituation = isSit === 'Yes' ? document.getElementById('is-past-board-situation').checked : false;
-        const boardMonth = document.getElementById('board-month').value;
-        const boardYear = document.getElementById('board-year').value;
-        const codeId = isSit ? document.getElementById('situation-code').value : document.getElementById('standalone-code').value;
-        
-        if (!codeId) return alert("Please enter a Situation ID / Code or Question ID.");
-
-        const scenario = isSit ? document.getElementById('scenario-text').value : "";
-        const globalSolution = document.getElementById('global-solution-text').value;
-        const blocks = document.querySelectorAll('.question-block-card');
-
-        let questionsArray = [];
-        blocks.forEach((block) => {
-            let isPastBoardQ = isPastBoardSituation || (isSit === 'No' ? block.querySelector('.q-is-past-board').checked : false);
-            questionsArray.push({
-                question: block.querySelector('.q-text').value,
-                isPastBoard: isPastBoardQ,
-                options: { 
-                    A: block.querySelector('.q-opt-a').value, 
-                    B: block.querySelector('.q-opt-b').value, 
-                    C: block.querySelector('.q-opt-c').value, 
-                    D: block.querySelector('.q-opt-d').value 
-                },
-                correct: block.querySelector('.q-correct').value
-            });
-        });
-
-        const recordData = {
-            id: codeId,
-            main: main,
-            sub: sub,
-            isSituational: isSit,
-            isPastBoard: isPastBoardSituation,
-            boardMonth: boardMonth,
-            boardYear: boardYear,
-            scenario: scenario,
-            solution: globalSolution,
-            images: [...attachedImages],
-            solutionImages: [...attachedSolutionImages],
-            questions: questionsArray,
-            appearances: 0
-        };
-
-        const { error } = await supabaseClient.from('questions').upsert(recordData);
-        if (error) { alert("Error saving to Supabase: " + error.message); return; }
-
-        showAlert("Successfully saved to Supabase repository!");
-        await loadDatabaseFromSupabase();
-        resetCreatorForm();
+    function logoutAdmin() {
+        document.getElementById('admin-staff-content').style.display = 'none';
+        document.getElementById('admin-instructor-content').style.display = 'none';
+        document.getElementById('logout-btn').style.display = 'none';
+        document.getElementById('admin-passcode-input').value = "";
+        document.getElementById('admin-lock-screen').style.display = 'block';
     }
 
-    function resetCreatorForm() {
-        document.getElementById('question-form').reset();
-        document.getElementById('edit-mode-id').value = "";
-        document.getElementById('save-btn-label').innerText = "✅ Save to Supabase";
-        document.getElementById('is-past-board-situation').checked = false;
-        document.getElementById('board-date-container').style.display = 'none';
-        document.getElementById('question-blocks-container').innerHTML = `
-            <div class="question-block-card" data-block-id="1">
-                <h4 style="margin-top:0; color:#003300; font-size:14px;">Question #1</h4>
-                <div class="form-group standalone-board-toggle-wrapper" style="background: #f4f9f4; padding: 8px; border: 1px solid #dcdcdc; border-radius: 4px; margin-bottom: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; color: #003300;">
-                        <input type="checkbox" class="q-is-past-board" style="width: 16px; height: 16px; cursor: pointer;">
-                        ⭐ Tag this standalone question as a <strong>Past CE Board Exam</strong> problem
-                    </label>
-                </div>
-                <div class="form-group"><label>Question Prompt:</label><textarea class="q-text" placeholder="Type question text..." onfocus="setActiveField(this)"></textarea></div>
-                <label>Options:</label>
-                <div class="choice-row"><label>A:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-a" onfocus="setActiveField(this)" required></div></div>
-                <div class="choice-row"><label>B:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-b" onfocus="setActiveField(this)" required></div></div>
-                <div class="choice-row"><label>C:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-c" onfocus="setActiveField(this)" required></div></div>
-                <div class="choice-row"><label>D:</label><div class="choice-input-wrapper"><input type="text" class="q-opt-d" onfocus="setActiveField(this)" required></div></div>
-                <div class="form-group" style="margin-top: 10px;"><label>Correct Answer:</label><select class="q-correct"><option value="A">Option A</option><option value="B" selected>Option B</option><option value="C">Option C</option><option value="D">Option D</option></select></div>
-            </div>
-        `;
-        blockCounter = 1;
-        attachedImages = [];
-        attachedSolutionImages = [];
-        renderGalleries();
-        renderSolutionGallery();
-        toggleScenario(); 
-        updatePreview();
-    }
+    async function loadAdminStudents(containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "Loading student roster...";
 
-    function editRecord(recordId) {
-        const record = localDB.find(r => r.id === recordId);
-        if (!record) return;
-
-        resetCreatorForm();
-        document.getElementById('edit-mode-id').value = record.id;
-        document.getElementById('save-btn-label').innerText = "💾 Update Record in Supabase";
-
-        document.getElementById('main-subject').value = record.main;
-        populateSubSubjects('main-subject', 'sub-subject', record.sub);
-        document.getElementById('is-situational').value = record.isSituational;
-        document.getElementById('is-past-board-situation').checked = record.isPastBoard || false;
-        document.getElementById('board-month').value = record.boardMonth || '';
-        document.getElementById('board-year').value = record.boardYear || '';
-        toggleBoardDateFields();
-        toggleScenario();
-
-        if (record.isSituational === 'Yes') {
-            document.getElementById('situation-code').value = record.id;
-            document.getElementById('scenario-text').value = record.scenario || '';
-        } else {
-            document.getElementById('standalone-code').value = record.id;
-        }
-
-        document.getElementById('global-solution-text').value = record.solution || '';
-        attachedImages = [...(record.images || [])];
-        attachedSolutionImages = [...(record.solutionImages || [])];
-        renderGalleries();
-        renderSolutionGallery();
-
-        const container = document.getElementById('question-blocks-container');
-        container.innerHTML = "";
-        blockCounter = 0;
-        if (record.questions && record.questions.length > 0) {
-            record.questions.forEach(q => addNewQuestionBlock(q));
-        } else { addNewQuestionBlock(); }
-
-        switchTab('creator');
-        showAlert("Loaded record into Question Creator for editing.");
-    }
-
-    function showAlert(msg) {
-        let alertBox = document.getElementById('success-alert'); alertBox.innerText = msg; alertBox.style.display = 'block';
-        setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
-    }
-
-    function renderQuestionBankTable() {
-        const tbody = document.getElementById('bank-table-body'); 
-        tbody.innerHTML = "";
-        document.getElementById('bank-counter').innerText = localDB.length;
-
-        const filterMain = document.getElementById('filter-main').value;
-        const filterSub = document.getElementById('filter-sub').value;
-        const filterSearch = document.getElementById('filter-search').value.toLowerCase();
-
-        let filteredDB = localDB.filter(q => {
-            if (filterMain && q.main !== filterMain) return false;
-            if (filterSub && q.sub !== filterSub) return false;
-            if (filterSearch) {
-                let matchId = q.id.toLowerCase().includes(filterSearch);
-                let matchQ = q.questions.some(item => item.question.toLowerCase().includes(filterSearch));
-                let matchScen = q.scenario && q.scenario.toLowerCase().includes(filterSearch);
-                if (!matchId && !matchQ && !matchScen) return false;
-            }
-            return true;
-        });
-
-        if (filteredDB.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">No matching records found in Supabase.</td></tr>`;
+        const { data, error } = await supabaseClient.from(activeStudentTable).select('*');
+        if (error) {
+            container.innerHTML = "<span style='color:red;'>Error loading table: " + error.message + "</span>";
             return;
         }
 
-        filteredDB.forEach((q) => {
-            let dateStr = (q.boardMonth && q.boardYear) ? ` (${q.boardMonth} ${q.boardYear})` : '';
-            let isPast = q.isPastBoard || q.questions.some(item => item.isPastBoard);
-            let badge = isPast ? ` <span style="color:#d9822b; font-weight:bold;">[⭐ Past Board${dateStr}]</span>` : '';
-            let displayPrompt = (q.isSituational === 'Yes' ? `<em>Situation Passage (${q.questions.length} items)</em>` : (q.questions[0] ? q.questions[0].question : '')) + badge;
-            let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${q.id}</strong></td>
-                <td>${q.main}<br><small>${q.sub}</small></td>
-                <td>${displayPrompt}</td>
-                <td class="action-btns">
-                    <button type="button" class="btn-edit" onclick="editRecord('${q.id}')">✏️ Edit</button>
-                    <button type="button" class="btn-delete" onclick="deleteRecord('${q.id}')">🗑 Del</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        
-        if (window.renderMathInElement) renderMathInElement(tbody, { delimiters: [{left: '$', right: '$', display: false}] });
-    }
-
-    async function deleteRecord(recordId) {
-        if (confirm("Delete this record from Supabase?")) { 
-            const { error } = await supabaseClient.from('questions').delete().eq('id', recordId);
-            if (error) { alert("Error deleting: " + error.message); return; }
-            await loadDatabaseFromSupabase();
+        if (!data || data.length === 0) {
+            container.innerHTML = "No students found in " + activeStudentTable + ".";
+            return;
         }
-    }
 
-    async function clearEntireDatabase() {
-        if (confirm("WARNING: This will delete ALL questions from the Supabase database. Are you sure?")) { 
-            const { error } = await supabaseClient.from('questions').delete().neq('id', '');
-            if (error) { alert("Error clearing database: " + error.message); return; }
-            await loadDatabaseFromSupabase();
-        }
-    }
-
-    function exportDatabase() {
-        let csv = "ID,Main_Subject,Sub_Subject,Is_Situational,Is_Past_Board,Board_Month,Board_Year,Situation,Questions_Count\n";
-        localDB.forEach(q => {
-            let row = [ q.id, q.main, q.sub, q.isSituational, q.isPastBoard || false, q.boardMonth || '', q.boardYear || '', `"${q.scenario || ''}"`, q.questions.length ];
-            csv += row.join(",") + "\n";
+        let html = `<table class="bank-table"><thead><tr><th>ID</th><th>Email</th><th>Given Name</th><th>Surname</th><th>Section</th><th>Action</th></tr></thead><tbody>`;
+        data.forEach(s => {
+            html += `<tr>
+                <td>${s.id}</td>
+                <td>${s.email || ''}</td>
+                <td>${s.given_name || ''}</td>
+                <td>${s.surname || ''}</td>
+                <td>${s.review_section || ''}</td>
+                <td><button type="button" class="action-btn" style="background:#d9534f;" onclick="adminDeleteStudent('${s.id}', '${containerId}')">🗑️ Delete</button></td>
+            </tr>`;
         });
-        const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-        link.setAttribute("download", "ce_exam_database_supabase.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     }
 
-    loadDatabaseFromSupabase();
+    async function adminAddStudent(containerId) {
+        const id = document.getElementById('admin-add-id').value.trim();
+        const email = document.getElementById('admin-add-email').value.trim();
+        const given_name = document.getElementById('admin-add-given').value.trim();
+        const surname = document.getElementById('admin-add-surname').value.trim();
+        const review_section = document.getElementById('admin-add-section').value.trim();
+
+        if (!id || !surname) return alert("Please fill at least the Student ID and Surname.");
+
+        const { error } = await supabaseClient.from(activeStudentTable).insert([{ id, email, given_name, surname, review_section }]);
+        if (error) return alert("Error adding student: " + error.message);
+
+        alert("Student successfully added!");
+        document.getElementById('admin-add-id').value = "";
+        document.getElementById('admin-add-email').value = "";
+        document.getElementById('admin-add-given').value = "";
+        document.getElementById('admin-add-surname').value = "";
+        document.getElementById('admin-add-section').value = "";
+        loadAdminStudents(containerId);
+    }
+
+    async function adminDeleteStudent(id, containerId) {
+        if (!confirm("Are you sure you want to remove student ID " + id + "?")) return;
+        const { error } = await supabaseClient.from(activeStudentTable).delete().eq('id', id);
+        if (error) return alert("Error deleting student: " + error.message);
+        loadAdminStudents(containerId);
+    }
+
+    async function handleCsvBulkUpload(inputId, containerId) {
+        const fileInput = document.getElementById(inputId);
+        if (!fileInput.files || fileInput.files.length === 0) return alert("Please select a CSV file first.");
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function(e) {
+            const text = e.target.result;
+            const lines = text.split(/\r\n|\n/);
+            if (lines.length < 2) return alert("The CSV file appears empty or formatted incorrectly.");
+
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            let batchRecords = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const values = lines[i].split(',').map(v => v.trim().replace(/^"(.*)"$/, '$1'));
+                let record = {};
+                headers.forEach((header, idx) => { if (values[idx] !== undefined) record[header] = values[idx]; });
+
+                if (record.id && record.surname) {
+                    batchRecords.push({
+                        id: record.id,
+                        email: record.email || '',
+                        given_name: record.given_name || record.name || '',
+                        surname: record.surname,
+                        review_section: record.review_section || record.section || 'General Review'
+                    });
+                }
+            }
+
+            if (batchRecords.length === 0) return alert("No valid records found. Check CSV headers (id, email, given_name, surname, review_section).");
+
+            const { error } = await supabaseClient.from(activeStudentTable).upsert(batchRecords);
+            if (error) {
+                alert("Error bulk inserting CSV records: " + error.message);
+            } else {
+                alert(`Successfully imported ${batchRecords.length} students into roster!`);
+                fileInput.value = "";
+                loadAdminStudents(containerId);
+            }
+        };
+        reader.readAsText(file);
+    }
 </script>
 </body>
 </html>
