@@ -118,7 +118,7 @@ button.primary-btn { background: #003300; color: #ccff00; border: none; padding:
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, 70% width & centered on desktop */
+/* Responsive image display: full-width on mobile, 50% width & centered on desktop */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -331,7 +331,7 @@ table.bank-table th { background: #003300; color: white; }
     const supabaseUrl = 'https://ivysbzuxtibwsnvxwimp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXNienV4dGlid3Nudnh3aW1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDA4MTQsImV4cCI6MjEwNjkxNjgxNH0.Qjh2Era51N0aFiKJ-Y-JojgsPRf6DIwGG0YLcKkPEWM';
     
-    // Supabase client initialization with PKCE flow enabled
+    // Supabase client initialization with PKCE flow enabled for Vercel
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
         auth: {
             flowType: 'pkce',
@@ -381,7 +381,7 @@ table.bank-table th { background: #003300; color: white; }
             provider: 'azure',
             options: {
                 scopes: 'email profile',
-                redirectTo: 'https://benjiepantinoce.github.io/ri-quiz-app/'
+                redirectTo: window.location.origin + window.location.pathname
             }
         });
         if (error) document.getElementById('auth-error-msg').innerText = error.message;
@@ -416,7 +416,7 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // Intercept OAuth hash fragment tokens directly to prevent GitHub Pages 404
+        // Intercept OAuth hash tokens directly to prevent redirect loops on Vercel
         if (window.location.hash && window.location.hash.includes('access_token')) {
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session) {
@@ -456,6 +456,7 @@ table.bank-table th { background: #003300; color: white; }
         }
         localDB = data || [];
         loadDailyChallenge();
+        updateGenSubSubjects();
     }
 
     const subSubjectMap = {
