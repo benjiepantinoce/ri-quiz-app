@@ -352,24 +352,35 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function loginWithMicrosoft() {
+        const errDiv = document.getElementById('auth-error-msg');
+        errDiv.innerText = "";
+
+        // If inside Microsoft Teams, extract context and auto-register/login
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
                 const context = await microsoftTeams.app.getContext();
                 if (context && context.user) {
-                    await handleTeamsAutoLogin(context.user.loginHint || context.user.userPrincipalName, context.user.displayName, context.team?.displayName || context.channel?.displayName);
-                    return;
+                    const email = context.user.loginHint || context.user.userPrincipalName;
+                    const fullName = context.user.displayName || "Teams Student";
+                    const sectionName = context.team?.displayName || context.channel?.displayName || "MS Teams General";
+
+                    if (email) {
+                        await handleTeamsAutoLogin(email, fullName, sectionName);
+                        return;
+                    }
                 }
             } catch (err) {
-                console.log("Teams login fallback triggered:", err);
+                console.log("Teams login extraction note:", err);
             }
         }
 
+        // Standard Web Browser OAuth Fallback
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: { scopes: 'email profile', redirectTo: window.location.origin + window.location.pathname }
         });
-        if (error) document.getElementById('auth-error-msg').innerText = error.message;
+        if (error) errDiv.innerText = error.message;
     }
 
     async function handleStudentIdLogin() {
@@ -395,21 +406,16 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function handleTeamsAutoLogin(email, fullName, sectionName) {
-        if (!email) {
-            document.getElementById('auth-error-msg').innerText = "Could not retrieve email from Microsoft Teams.";
-            return;
-        }
-
-        // Check if student exists in Supabase
+        // 1. Check if student already exists in Supabase by email
         let { data: studentRecord } = await supabaseClient
             .from(activeStudentTable)
             .select('*')
             .eq('email', email)
             .single();
 
+        // 2. If NOT found in Supabase, create/flood them in automatically
         if (!studentRecord) {
-            // Auto-register student on the fly if opening via Teams
-            let nameParts = (fullName || "RI Student").split(" ");
+            let nameParts = fullName.split(" ");
             let given = nameParts[0] || "Student";
             let surname = nameParts.slice(1).join(" ") || "Reviewee";
             let generatedId = 'MS-' + Math.floor(100000 + Math.random() * 900000);
@@ -419,14 +425,15 @@ table.bank-table th { background: #003300; color: white; }
                 email: email,
                 given_name: given,
                 surname: surname,
-                review_section: sectionName || 'MS Teams Enrolled'
+                review_section: sectionName
             };
 
+            // Flood/insert the new record into Supabase
             const { error: insertErr } = await supabaseClient.from(activeStudentTable).insert([newStudent]);
             if (!insertErr) {
                 studentRecord = newStudent;
             } else {
-                // Fallback session object if insert fails due to network/permissions
+                // Fallback local session if offline or restriction blocks insert
                 studentRecord = newStudent;
             }
         } else if (sectionName && !studentRecord.review_section) {
@@ -466,36 +473,38 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // 1. Teams Auto-Login & Automatic Section Detection
+        // 1. Check if a local session is already saved
+        const savedSession = localStorage.getItem('ri_student_session');
+        if (savedSession) {
+            enterPortalApp(JSON.parse(savedSession));
+            return;
+        }
+
+        // 2. If inside MS Teams, optionally auto-detect context if initialized
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
                 const context = await new Promise((resolve) => {
                     microsoftTeams.app.getContext().then(resolve).catch(() => resolve(null));
-                    setTimeout(() => resolve(null), 1500);
+                    setTimeout(() => resolve(null), 1000);
                 });
                 
                 if (context && context.user && (context.user.loginHint || context.user.userPrincipalName)) {
                     const teamsEmail = context.user.loginHint || context.user.userPrincipalName;
                     const teamsName = context.user.displayName || "RI Student";
-                    const teamsSection = context.team?.displayName || context.channel?.displayName || null;
+                    const teamsSection = context.team?.displayName || context.channel?.displayName || "MS Teams General";
 
                     await handleTeamsAutoLogin(teamsEmail, teamsName, teamsSection);
                     return;
                 }
             } catch (err) {
-                console.log("Teams SDK context handshake skipped or failed:", err);
+                console.log("Teams background auto-handshake note:", err);
             }
         }
 
-        // 2. Local storage session fallback
-        const savedSession = localStorage.getItem('ri_student_session');
-        if (savedSession) {
-            enterPortalApp(JSON.parse(savedSession));
-        } else {
-            document.getElementById('auth-wrapper').style.display = 'flex';
-            document.getElementById('main-portal-app').style.display = 'none';
-        }
+        // 3. Otherwise, show login screen
+        document.getElementById('auth-wrapper').style.display = 'flex';
+        document.getElementById('main-portal-app').style.display = 'none';
     }
 
     async function logoutSession() {
