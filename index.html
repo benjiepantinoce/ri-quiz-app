@@ -399,14 +399,11 @@ table.bank-table th { background: #003300; color: white; }
 
     async function loginWithMicrosoft() {
         if (typeof microsoftTeams !== 'undefined') {
-            // Inside Microsoft Teams iframe, direct popup OAuth fails or blanks out.
-            // Guide them cleanly to use their Student ID login tab instead.
             switchAuthTab('id');
             document.getElementById('auth-error-msg').innerText = "Please use your Student ID login for instant access inside Teams!";
             return;
         }
 
-        // Standard browser OAuth fallback
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: {
@@ -425,7 +422,7 @@ table.bank-table th { background: #003300; color: white; }
         if (!studentId) { errDiv.innerText = "Please enter your Student ID."; return; }
 
         const { data, error } = await supabaseClient
-            .from('enrolled_students')
+            .from('May_2027_Students')
             .select('*')
             .eq('id', studentId)
             .single();
@@ -443,7 +440,7 @@ table.bank-table th { background: #003300; color: white; }
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
 
-        const watermarkText = `${student.name} ${student.surname} (${student.id})`;
+        const watermarkText = `${student.given_name} ${student.surname} (${student.id})`;
         
         document.getElementById('wm-1').innerText = watermarkText;
         document.getElementById('wm-2').innerText = watermarkText;
@@ -467,7 +464,7 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('main-portal-app').style.display = 'block';
 
         const badge = document.getElementById('nav-student-badge');
-        badge.innerText = `👤 ${studentData.name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
+        badge.innerText = `👤 ${studentData.given_name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
         badge.style.display = 'block';
 
         generateWatermark(studentData);
@@ -489,7 +486,7 @@ table.bank-table th { background: #003300; color: white; }
                     const teamsEmail = context.user.loginHint;
 
                     const { data: studentRecord } = await supabaseClient
-                        .from('enrolled_students')
+                        .from('May_2027_Students')
                         .select('*')
                         .eq('email', teamsEmail)
                         .single();
@@ -513,7 +510,7 @@ table.bank-table th { background: #003300; color: white; }
                 const userName = data.session.user.user_metadata?.full_name || userEmail;
 
                 const { data: studentRecord } = await supabaseClient
-                    .from('enrolled_students')
+                    .from('May_2027_Students')
                     .select('*')
                     .eq('email', userEmail)
                     .single();
@@ -525,7 +522,7 @@ table.bank-table th { background: #003300; color: white; }
                     enterPortalApp(studentRecord);
                     return;
                 } else {
-                    const fallbackStudent = { id: 'MS-AUTH', name: userName, surname: '', review_section: 'Microsoft User' };
+                    const fallbackStudent = { id: 'MS-AUTH', given_name: userName, surname: '', review_section: 'Microsoft User' };
                     localStorage.setItem('ri_student_session', JSON.stringify(fallbackStudent));
                     enterPortalApp(fallbackStudent);
                     return;
@@ -538,12 +535,12 @@ table.bank-table th { background: #003300; color: white; }
         if (session && session.user) {
             const userEmail = session.user.email;
             const { data: studentRecord } = await supabaseClient
-                .from('enrolled_students')
+                .from('May_2027_Students')
                 .select('*')
                 .eq('email', userEmail)
                 .single();
             
-            enterPortalApp(studentRecord || { id: 'MS-AUTH', name: session.user.email, surname: '', review_section: 'Active' });
+            enterPortalApp(studentRecord || { id: 'MS-AUTH', given_name: session.user.email, surname: '', review_section: 'Active' });
             return;
         }
 
