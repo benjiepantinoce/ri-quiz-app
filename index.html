@@ -466,11 +466,15 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     async function checkUserSession() {
-        // 1. Check if running inside Microsoft Teams for seamless auto-login via SDK
+        // 1. Check if running inside Microsoft Teams with robust SDK promise handshake
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
-                const context = await microsoftTeams.app.getContext();
+                
+                const context = await new Promise((resolve) => {
+                    microsoftTeams.app.getContext().then(resolve).catch(() => resolve(null));
+                    setTimeout(() => resolve(null), 1500); // 1.5s fallback timeout
+                });
                 
                 if (context && context.user && context.user.loginHint) {
                     const teamsEmail = context.user.loginHint;
@@ -488,7 +492,7 @@ table.bank-table th { background: #003300; color: white; }
                     }
                 }
             } catch (err) {
-                console.log("Not inside Teams or SSO context unavailable, falling back to standard checks.");
+                console.log("Teams SDK context handshake skipped or failed:", err);
             }
         }
 
