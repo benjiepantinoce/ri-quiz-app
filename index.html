@@ -62,7 +62,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ms-btn:hover { background: #1f1f1f; }
 
-/* DYNAMIC WATERMARK (5 PCS, 16% VISIBILITY) */
+/* DYNAMIC WATERMARK (5 PCS, EMAIL HANDLE ONLY, 16% OPACITY) */
 #watermark-layer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -97,7 +97,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 12px;
+    padding: 10px 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     position: sticky; top: 0; z-index: 1000;
 }
@@ -106,9 +106,21 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 .ri-logo-img { height: 35px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; }
+
+/* TOP RIGHT USERNAME BADGE */
+#nav-student-badge {
+    color: #ccff00;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: right;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .nav-tabs { display: flex; align-items: center; justify-content: center; width: 100%; gap: 4px; flex-wrap: wrap; }
 .nav-tab {
@@ -132,6 +144,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     .ri-navbar { flex-direction: row; justify-content: space-between; padding: 0 20px; height: 65px; }
     .navbar-top { width: auto; margin-bottom: 0; }
     .ri-logo-img { height: 45px; }
+    #nav-student-badge { font-size: 14px; max-width: none; }
     .nav-tabs { width: auto; gap: 2px; flex-wrap: nowrap; }
     .nav-tab { padding: 0 15px; height: 65px; font-size: 14px; border-radius: 0; }
     .nav-tab.active { border-top: 3px solid #ccff00; background: #1e5223; color: #fff; }
@@ -228,7 +241,7 @@ table.bank-table th { background: #003300; color: white; }
     <div class="ri-navbar">
         <div class="navbar-top">
             <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
-            <span id="nav-student-badge" style="color:#ccff00; font-size:12px; font-weight:bold; display:none; text-align:right;"></span>
+            <span id="nav-student-badge"></span>
         </div>
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
@@ -357,7 +370,6 @@ table.bank-table th { background: #003300; color: white; }
         const errDiv = document.getElementById('auth-error-msg');
         errDiv.innerText = "";
 
-        // 1. If inside MS Teams, extract context & flood into database
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
@@ -377,7 +389,6 @@ table.bank-table th { background: #003300; color: white; }
             }
         }
 
-        // 2. If opened in a standard web browser, use Supabase Azure OAuth
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'azure',
             options: { scopes: 'email profile', redirectTo: window.location.origin + window.location.pathname }
@@ -428,7 +439,6 @@ table.bank-table th { background: #003300; color: white; }
                 review_section: sectionName
             };
 
-            // Flood/insert the new record into Supabase
             const { error: insertErr } = await supabaseClient.from(activeStudentTable).insert([newStudent]);
             if (insertErr) {
                 console.error("Supabase insert error (Check RLS Policies):", insertErr.message);
@@ -447,7 +457,6 @@ table.bank-table th { background: #003300; color: white; }
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
         
-        // Extract email handle before '@' (e.g., user@gmail.com -> user)
         let emailHandle = student.email ? student.email.split('@')[0] : (student.given_name || 'student');
         const watermarkText = `${emailHandle} (${student.id || ''})`;
 
@@ -468,15 +477,14 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('main-portal-app').style.display = 'block';
 
         const badge = document.getElementById('nav-student-badge');
-        badge.innerText = `👤 ${studentData.given_name || ''} ${studentData.surname || ''} [${studentData.review_section || 'Enrolled'}]`;
-        badge.style.display = 'block';
+        let displayName = `${studentData.given_name || ''} ${studentData.surname || ''}`.trim() || studentData.email || "Student";
+        badge.innerText = `👤 ${displayName} [${studentData.review_section || 'Enrolled'}]`;
 
         generateWatermark(studentData);
         fetchStudentQuestionBank();
     }
 
     async function checkUserSession() {
-        // 1. Check if Supabase redirected back with an OAuth session from browser login
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session && session.user) {
             const user = session.user;
@@ -486,14 +494,12 @@ table.bank-table th { background: #003300; color: white; }
             return;
         }
 
-        // 2. Check saved local session instantly
         const savedSession = localStorage.getItem('ri_student_session');
         if (savedSession) {
             enterPortalApp(JSON.parse(savedSession));
             return;
         }
 
-        // 3. Fast non-blocking MS Teams check with a 500ms strict timeout
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
@@ -623,6 +629,20 @@ table.bank-table th { background: #003300; color: white; }
         });
     }
 
+    function buildSolutionHtml(record) {
+        let solHtml = "";
+        if (record.solution && record.solution.trim() !== "") {
+            solHtml += `<div>${record.solution}</div>`;
+        }
+        if (record.solutionImages && record.solutionImages.length > 0) {
+            record.solutionImages.forEach(img => { solHtml += `<img src="${img}" class="student-image-display">`; });
+        } else if (record.images && record.images.length > 0 && (!record.solution || record.solution.trim() === "")) {
+            // Fallback to scenario/question image if no explicit text solution provided
+            record.images.forEach(img => { solHtml += `<img src="${img}" class="student-image-display">`; });
+        }
+        return solHtml;
+    }
+
     function loadDailyChallenge() {
         const container = document.getElementById('daily-problem-container');
         if (localDB.length === 0) { container.innerHTML = "No questions available."; return; }
@@ -636,6 +656,8 @@ table.bank-table th { background: #003300; color: white; }
             record.images.forEach(img => { imagesHtml += `<img src="${img}" class="student-image-display">`; });
         }
 
+        let solutionContent = buildSolutionHtml(record);
+
         container.innerHTML = `
             <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#003300;">[${record.id}] ${record.main} / ${record.sub}</div>
             ${record.scenario ? `<div style="background:#eef2f3; padding:10px; margin-bottom:10px; border-left:3px solid #003300; font-size:14px; line-height:1.5;">${record.scenario}</div>` : ''}
@@ -647,7 +669,7 @@ table.bank-table th { background: #003300; color: white; }
             <label class="choice-item"><input type="radio" name="daily_ans" value="D"> D. ${q.options.D}</label>
             <button type="button" onclick="checkDailyAnswer('${q.correct}', '${record.id}')" class="primary-btn" style="margin-top:12px;">Submit Answer</button>
             <div id="daily-feedback" style="margin-top:12px; display:none; font-size:14px;"></div>
-            <div id="daily_solution_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || 'No solution provided.'}</div>
+            <div id="daily_solution_${record.id}" class="solution-box"><strong>Solution:</strong><br>${solutionContent}</div>
         `;
         setupChoiceHighlighting(container);
         if (window.renderMathInElement) renderMathInElement(container, { delimiters: [{left:'$', right:'$', display:false}] });
@@ -658,13 +680,14 @@ table.bank-table th { background: #003300; color: white; }
         const feedback = document.getElementById('daily-feedback');
         const solBox = document.getElementById(`daily_solution_${recordId}`);
         
+        if (!selected) {
+            alert("Please choose an answer before submitting.");
+            return;
+        }
+
         feedback.style.display = 'block';
         if (solBox) solBox.style.display = 'block';
 
-        if (!selected) { 
-            feedback.innerHTML = "<span style='color:orange;'>Please select an option first. Solution is displayed below.</span>"; 
-            return; 
-        }
         if (selected.value === correctOpt) {
             feedback.innerHTML = "<span style='color:green; font-weight:bold;'>🎉 Correct! Great job.</span>";
         } else {
@@ -745,7 +768,7 @@ table.bank-table th { background: #003300; color: white; }
                 questionFlattenList.push({ record: record, q: q, globalIdx: currentGlobalIdx });
 
                 htmlContent += `
-                    <div style="margin-bottom: 15px; padding-bottom: 12px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #dcdcdc;' : ''}">
+                    <div id="question_wrapper_${currentGlobalIdx}" style="margin-bottom: 15px; padding-bottom: 12px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #dcdcdc;' : ''}">
                         <div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#003300;">Question ${globalRenderIdx++}</div>
                         <div style="margin-bottom:10px; font-size:14px; line-height:1.5;">${q.question}</div>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
@@ -756,7 +779,8 @@ table.bank-table th { background: #003300; color: white; }
                 `;
             });
 
-            htmlContent += `<div id="solution_block_${record.id}" class="solution-box"><strong>Solution:</strong><br>${record.solution || 'No solution provided.'}</div>`;
+            let solutionContent = buildSolutionHtml(record);
+            htmlContent += `<div id="solution_block_${record.id}" class="solution-box"><strong>Solution:</strong><br>${solutionContent}</div>`;
             cardDiv.innerHTML = htmlContent;
             paper.appendChild(cardDiv);
             setupChoiceHighlighting(cardDiv);
@@ -781,6 +805,28 @@ table.bank-table th { background: #003300; color: white; }
 
     function submitExam() {
         if (!currentExamSession) return;
+
+        // Check for any unanswered questions
+        let firstUnansweredIdx = -1;
+        for (let idx = 0; idx < currentExamSession.flattenList.length; idx++) {
+            const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
+            if (!selected) {
+                firstUnansweredIdx = idx;
+                break;
+            }
+        }
+
+        if (firstUnansweredIdx !== -1) {
+            alert("⚠️ Please choose an answer for all questions before submitting.");
+            const targetElement = document.getElementById(`question_wrapper_${firstUnansweredIdx}`);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetElement.style.border = "2px solid #ff9800";
+                setTimeout(() => targetElement.style.border = "none", 3000);
+            }
+            return;
+        }
+
         if (activeExamTimer) clearInterval(activeExamTimer);
         let score = 0, total = currentExamSession.flattenList.length;
 
@@ -813,4 +859,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-    </html>
+</html>
