@@ -15,7 +15,7 @@
 
 <style>
 * { box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; -webkit-text-size-adjust: 100%; transition: filter 0.2s ease; }
+body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; color: #333; -webkit-text-size-adjust: 100%; transition: filter 0.2s ease; overflow-x: hidden; }
 
 /* AUTH SCREEN STYLES */
 #auth-wrapper {
@@ -24,18 +24,18 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(135deg, #003300 0%, #1e5223 100%);
-    padding: 20px;
+    padding: 15px;
 }
 .auth-card {
     background: white;
     width: 100%;
-    max-width: 420px;
-    padding: 30px;
+    max-width: 400px;
+    padding: 25px;
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     text-align: center;
 }
-.auth-logo { height: 50px; width: auto; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; background: #003300; padding: 4px; }
+.auth-logo { height: 45px; width: auto; margin-bottom: 12px; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; background: #003300; padding: 4px; }
 .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
 .auth-tab { flex: 1; padding: 10px; cursor: pointer; font-weight: bold; font-size: 13px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px; }
 .auth-tab.active { color: #003300; border-bottom: 3px solid #003300; }
@@ -63,7 +63,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 .divider::before { margin-right: .5em; }
 .divider::after { margin-left: .5em; }
 
-/* WATERMARK OVERLAY (Faint & Non-Disruptive) */
+/* DYNAMIC WATERMARK (4 Balanced, Larger, Faint Sections) */
 #watermark-layer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -72,72 +72,94 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     overflow: hidden;
     display: none;
 }
-.watermark-text {
+.watermark-grid {
     position: absolute;
-    color: rgba(0, 51, 0, 0.04); /* ~95-96% transparent / 4% opacity for comfortable reading */
-    font-size: 15px;
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+.watermark-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(0, 51, 0, 0.045); /* ~95% transparent, extremely comfortable to view */
+    font-size: 22px;
     font-weight: bold;
-    transform: rotate(-30deg);
+    transform: rotate(-25deg);
     user-select: none;
     white-space: nowrap;
+    text-align: center;
 }
 
-/* PORTAL STYLES */
+/* PORTAL NAVBAR & LAYOUT (Mobile Optimized) */
 .ri-navbar {
     background-color: #003300;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 10px;
-    height: 60px;
+    padding: 8px 12px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     position: sticky; top: 0; z-index: 1000;
 }
-.ri-logo-img { height: 40px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; }
+.navbar-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.ri-logo-img { height: 35px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; }
 
-.nav-tabs { display: flex; align-items: center; height: 100%; gap: 2px; }
+.nav-tabs { display: flex; align-items: center; justify-content: center; width: 100%; gap: 4px; flex-wrap: wrap; }
 .nav-tab {
-    padding: 0 10px;
-    height: 100%;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     cursor: pointer;
     font-weight: bold;
     color: #ffffff;
-    font-size: 13px;
+    font-size: 12px;
     background: transparent;
+    border-radius: 4px;
     transition: 0.2s;
-    border-top: 3px solid transparent;
+    border-top: none;
     text-align: center;
 }
-.nav-tab:hover { background: rgba(255,255,255,0.05); }
-.nav-tab.active { background: #1e5223; color: #ffffff; border-top: 3px solid #ccff00; }
+.nav-tab:hover { background: rgba(255,255,255,0.1); }
+.nav-tab.active { background: #1e5223; color: #ccff00; border-top: none; }
 
-.container { max-width: 950px; margin: 0 auto; background: white; padding: 12px; min-height: calc(100vh - 60px); }
 @media (min-width: 768px) {
-    .container { margin: 20px auto; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: auto; }
-    .ri-navbar { padding: 0 20px; height: 70px; }
-    .ri-logo-img { height: 50px; }
-    .nav-tab { padding: 0 18px; font-size: 15px; }
+    .ri-navbar { flex-direction: row; justify-content: space-between; padding: 0 20px; height: 65px; }
+    .navbar-top { width: auto; margin-bottom: 0; }
+    .ri-logo-img { height: 45px; }
+    .nav-tabs { width: auto; gap: 2px; flex-wrap: nowrap; }
+    .nav-tab { padding: 0 15px; height: 65px; font-size: 14px; border-radius: 0; }
+    .nav-tab.active { border-top: 3px solid #ccff00; background: #1e5223; color: #fff; }
+}
+
+.container { max-width: 950px; margin: 10px auto; background: white; padding: 12px; min-height: calc(100vh - 70px); border-radius: 6px; }
+@media (min-width: 768px) {
+    .container { margin: 20px auto; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-.form-group { margin-bottom: 14px; }
+.form-group { margin-bottom: 12px; }
 label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 13px; color: #003300; }
-select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: #fff; }
 .row { display: flex; gap: 10px; flex-direction: column; }
 @media (min-width: 600px) { .row { flex-direction: row; } .row .form-group { flex: 1; } }
 
-.card { background: #ffffff; border: none; border-bottom: 2px solid #e0e0e0; padding: 12px 4px; margin-bottom: 15px; }
-.timer-badge { background: #ff9800; color: white; padding: 6px 12px; font-size: 14px; font-weight: bold; border-radius: 4px; display: inline-block; }
+.card { background: #ffffff; border: none; border-bottom: 2px solid #e0e0e0; padding: 12px 8px; margin-bottom: 15px; }
+.timer-badge { background: #ff9800; color: white; padding: 6px 12px; font-size: 13px; font-weight: bold; border-radius: 4px; display: inline-block; }
 
 button.primary-btn { background: #003300; color: #ccff00; border: none; padding: 12px; font-size: 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
 button.primary-btn:hover { background: #004d00; }
 button.action-btn { background: #20639b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
 
-/* Responsive image display: full-width on mobile, 50% width & centered on desktop */
+/* Responsive image display */
 .student-image-display { 
     width: 100%; 
     max-width: 100%; 
@@ -228,19 +250,26 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- WATERMARK LAYER -->
-<div id="watermark-layer"></div>
+<!-- DYNAMIC WATERMARK LAYER (4 Balanced Grid Sections) -->
+<div id="watermark-layer">
+    <div class="watermark-grid">
+        <div class="watermark-item"><span id="wm-1"></span></div>
+        <div class="watermark-item"><span id="wm-2"></span></div>
+        <div class="watermark-item"><span id="wm-3"></span></div>
+        <div class="watermark-item"><span id="wm-4"></span></div>
+    </div>
+</div>
 
 <!-- MAIN PORTAL CONTAINER (Hidden until authenticated) -->
 <div id="main-portal-app" style="display:none;">
     <div class="ri-navbar">
-        <div style="display:flex; align-items:center; gap:12px;">
+        <div class="navbar-top">
             <img src="RI_LOGO.png" alt="Review Innovations Logo" class="ri-logo-img">
-            <span id="nav-student-badge" style="color:#ccff00; font-size:13px; font-weight:bold; display:none;"></span>
+            <span id="nav-student-badge" style="color:#ccff00; font-size:12px; font-weight:bold; display:none; text-align:right;"></span>
         </div>
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('dashboard', this)">Dashboard</div>
-            <div class="nav-tab" onclick="switchTab('generator', this)">Generate Quiz</div>
+            <div class="nav-tab" onclick="switchTab('generator', this)">Quiz Gen</div>
             <div class="nav-tab" onclick="switchTab('history', this)">History</div>
             <div class="nav-tab" onclick="logoutSession()" style="color:#ffcccc;">Logout</div>
         </div>
@@ -249,18 +278,18 @@ table.bank-table th { background: #003300; color: white; }
     <div class="container">
         <!-- TAB: DASHBOARD -->
         <div id="dashboard-tab" class="tab-content active">
-            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Daily Challenge</h2>
-            <p style="font-size: 14px; color: #666;">Your daily randomized problem challenge is ready below.</p>
+            <h2 style="font-size: 18px; margin-top: 5px; color: #003300;">Daily Challenge</h2>
+            <p style="font-size: 13px; color: #666;">Your daily randomized problem challenge is ready below.</p>
 
             <div class="card" id="daily-challenge-card">
-                <h3 style="font-size: 16px; margin: 0 0 10px 0;">⭐ Problem of the Day (<span id="daily-subject-tag">PSAD</span>)</h3>
+                <h3 style="font-size: 15px; margin: 0 0 10px 0;">⭐ Problem of the Day (<span id="daily-subject-tag">PSAD</span>)</h3>
                 <div id="daily-problem-container">Loading daily challenge from Supabase...</div>
             </div>
         </div>
 
         <!-- TAB: GENERATE QUIZ -->
         <div id="generator-tab" class="tab-content">
-            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Custom Quiz Generator</h2>
+            <h2 style="font-size: 18px; margin-top: 5px; color: #003300;">Custom Quiz Generator</h2>
             <div class="card">
                 <div class="row">
                     <div class="form-group">
@@ -318,8 +347,8 @@ table.bank-table th { background: #003300; color: white; }
             <!-- ACTIVE EXAM CONTAINER -->
             <div id="active-exam-container" style="display:none;">
                 <div class="card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h3 id="exam-title-header" style="font-size: 16px; margin: 0;">Exam Session</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                        <h3 id="exam-title-header" style="font-size: 15px; margin: 0;">Exam Session</h3>
                         <div id="exam-timer-badge" class="timer-badge">⏱️ 00:00</div>
                     </div>
                     <div id="exam-questions-paper"></div>
@@ -330,7 +359,7 @@ table.bank-table th { background: #003300; color: white; }
 
         <!-- TAB: PROGRESS & HISTORY -->
         <div id="history-tab" class="tab-content">
-            <h2 style="font-size: 20px; margin-top: 5px; color: #003300;">Performance History</h2>
+            <h2 style="font-size: 18px; margin-top: 5px; color: #003300;">Performance History</h2>
             <div class="card">
                 <p style="font-size: 13px; color: #666;">Track your past exam scores and review previous attempts.</p>
                 <div id="history-records-container" class="table-responsive">No exam history recorded yet.</div>
@@ -405,21 +434,15 @@ table.bank-table th { background: #003300; color: white; }
 
     function generateWatermark(student) {
         const layer = document.getElementById('watermark-layer');
-        layer.innerHTML = "";
         layer.style.display = 'block';
 
-        const textContent = `${student.name} ${student.surname} (${student.id}) - RI CE Portal`;
-
-        for (let i = 0; i < 15; i++) {
-            for (let j = 0; j < 10; j++) {
-                let div = document.createElement('div');
-                div.className = 'watermark-text';
-                div.innerText = textContent;
-                div.style.top = `${j * 120}px`;
-                div.style.left = `${i * 260 - (j % 2 * 50)}px`;
-                layer.appendChild(div);
-            }
-        }
+        // Shortened text ending cleanly at ID/name to prevent long overlaps
+        const watermarkText = `${student.name} ${student.surname} (${student.id})`;
+        
+        document.getElementById('wm-1').innerText = watermarkText;
+        document.getElementById('wm-2').innerText = watermarkText;
+        document.getElementById('wm-3').innerText = watermarkText;
+        document.getElementById('wm-4').innerText = watermarkText;
     }
 
     // Anti-snoop blur protection when switching tabs
@@ -440,7 +463,7 @@ table.bank-table th { background: #003300; color: white; }
         // Display student badge in navbar
         const badge = document.getElementById('nav-student-badge');
         badge.innerText = `👤 ${studentData.name} ${studentData.surname} [${studentData.review_section || 'Enrolled'}]`;
-        badge.style.display = 'inline-block';
+        badge.style.display = 'block';
 
         generateWatermark(studentData);
         fetchStudentQuestionBank();
@@ -454,7 +477,6 @@ table.bank-table th { background: #003300; color: white; }
                 const userEmail = data.session.user.email;
                 const userName = data.session.user.user_metadata?.full_name || userEmail;
 
-                // Check enrollment by email or match with enrolled_students
                 const { data: studentRecord } = await supabaseClient
                     .from('enrolled_students')
                     .select('*')
@@ -468,7 +490,6 @@ table.bank-table th { background: #003300; color: white; }
                     enterPortalApp(studentRecord);
                     return;
                 } else {
-                    // Fallback object if email matches MS auth but not explicitly in table yet
                     const fallbackStudent = { id: 'MS-AUTH', name: userName, surname: '', review_section: 'Microsoft User' };
                     localStorage.setItem('ri_student_session', JSON.stringify(fallbackStudent));
                     enterPortalApp(fallbackStudent);
