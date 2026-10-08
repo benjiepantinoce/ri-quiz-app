@@ -65,10 +65,10 @@ table.bank-table th { background: #003300; color: white; }
         </div>
     </div>
 
-    <!-- STAFF VIEW: STUDENT BATCH MANAGER ONLY -->
+    <!-- STAFF VIEW: STUDENT BATCH MANAGER (CSV + MANUAL ENTRY) -->
     <div id="admin-staff-content" style="display:none;">
         <h2 style="font-size: 18px; color: #003300; margin-top:0;">👥 Staff Portal: Student Roster Manager</h2>
-        <p style="font-size: 13px; color: #666;">Manage active student batches, bulk-import CSVs, and update enrollments in Supabase.</p>
+        <p style="font-size: 13px; color: #666;">Manage student batches via bulk CSV import or manual individual entries.</p>
         
         <div class="card">
             <div class="form-group">
@@ -76,28 +76,29 @@ table.bank-table th { background: #003300; color: white; }
                 <input type="text" value="enrolled_students" readonly style="background:#eef2f3; font-weight:bold;">
             </div>
 
+            <!-- MANUAL ENTRY FORM -->
+            <div class="form-group" style="background: #fdfdfd; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-top: 15px;">
+                <label style="color: #003300;">➕ Manual Student Registration:</label>
+                <div class="row" style="margin-top: 8px;">
+                    <div class="form-group"><input type="text" id="manual-id" placeholder="Student ID (e.g., 2027-001)"></div>
+                    <div class="form-group"><input type="email" id="manual-email" placeholder="Email Address"></div>
+                </div>
+                <div class="row">
+                    <div class="form-group"><input type="text" id="manual-given" placeholder="Given Name"></div>
+                    <div class="form-group"><input type="text" id="manual-surname" placeholder="Surname"></div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="manual-section" placeholder="Review Section (e.g., March 2027 MANILA B1 Review)">
+                </div>
+                <button type="button" onclick="addManualStudent('admin-roster-container')" class="primary-btn">Save Student to Roster</button>
+            </div>
+
             <!-- CSV BULK UPLOADER -->
-            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 15px;">
+            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 20px;">
                 <label style="color: #003300;">📁 Bulk Import Students via CSV File:</label>
                 <p style="font-size: 12px; color: #555; margin-top: 2px;">Required CSV columns: <code>id, email, given_name, surname, review_section</code></p>
                 <input type="file" id="csv-file-input" accept=".csv" style="margin-top: 8px; background: white;">
                 <button type="button" onclick="handleCsvBulkUpload('csv-file-input', 'admin-roster-container')" class="primary-btn" style="margin-top: 10px; background: #20639b; color: white;">🚀 Upload & Bulk Insert CSV</button>
-            </div>
-
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Quick Add / Register Single Student:</label>
-                <div class="row">
-                    <div class="form-group"><input type="text" id="admin-add-id" placeholder="Student ID (e.g., 2027-001)"></div>
-                    <div class="form-group"><input type="text" id="admin-add-email" placeholder="Email Address"></div>
-                </div>
-                <div class="row">
-                    <div class="form-group"><input type="text" id="admin-add-given" placeholder="Given Name"></div>
-                    <div class="form-group"><input type="text" id="admin-add-surname" placeholder="Surname"></div>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="admin-add-section" placeholder="Review Section (e.g., March 2027 MANILA B1 Review)">
-                </div>
-                <button type="button" onclick="adminAddStudent('admin-roster-container')" class="primary-btn">➕ Add Student to Roster</button>
             </div>
 
             <div id="admin-roster-container" class="table-responsive" style="margin-top: 20px;">
@@ -106,17 +107,33 @@ table.bank-table th { background: #003300; color: white; }
         </div>
     </div>
 
-    <!-- INSTRUCTOR VIEW: FULL ACCESS (STUDENTS + QUESTIONS) -->
+    <!-- INSTRUCTOR VIEW: FULL ACCESS -->
     <div id="admin-instructor-content" style="display:none;">
         <h2 style="font-size: 18px; color: #003300; margin-top:0;">📚 Instructor Portal: Full Database Control</h2>
-        <p style="font-size: 13px; color: #666;">Full instructor access to student rosters and question bank databases.</p>
+        <p style="font-size: 13px; color: #666;">Full instructor access to student rosters and question management.</p>
         
         <div class="card">
             <div style="background:#e8f5e9; padding:12px; border-radius:6px; border-left:4px solid #2e7d32; margin-bottom:15px; font-size:13px;">
-                <strong>Instructor Access Active:</strong> You can manage student rosters below. (Question database tables can be managed here or via direct SQL).
+                <strong>Instructor Access Active:</strong> You have full administrative rights over student records below.
             </div>
 
-            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 15px;">
+            <div class="form-group" style="background: #fdfdfd; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-top: 15px;">
+                <label style="color: #003300;">➕ Manual Student Registration:</label>
+                <div class="row" style="margin-top: 8px;">
+                    <div class="form-group"><input type="text" id="manual-id-inst" placeholder="Student ID (e.g., 2027-001)"></div>
+                    <div class="form-group"><input type="email" id="manual-email-inst" placeholder="Email Address"></div>
+                </div>
+                <div class="row">
+                    <div class="form-group"><input type="text" id="manual-given-inst" placeholder="Given Name"></div>
+                    <div class="form-group"><input type="text" id="manual-surname-inst" placeholder="Surname"></div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="manual-section-inst" placeholder="Review Section (e.g., March 2027 MANILA B1 Review)">
+                </div>
+                <button type="button" onclick="addManualStudent('admin-roster-container-inst')" class="primary-btn">Save Student to Roster</button>
+            </div>
+
+            <div class="form-group" style="background: #f4f9f4; padding: 15px; border: 2px dashed #003300; border-radius: 6px; margin-top: 20px;">
                 <label style="color: #003300;">📁 Bulk Import Students via CSV File:</label>
                 <input type="file" id="csv-file-input-inst" accept=".csv" style="margin-top: 8px; background: white;">
                 <button type="button" onclick="handleCsvBulkUpload('csv-file-input-inst', 'admin-roster-container-inst')" class="primary-btn" style="margin-top: 10px; background: #20639b; color: white;">🚀 Upload & Bulk Insert CSV</button>
@@ -136,7 +153,6 @@ table.bank-table th { background: #003300; color: white; }
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     const activeStudentTable = 'enrolled_students';
 
-    // Role passcodes (Change these anytime)
     const STAFF_PASSCODE = "ri-staff-2027";
     const INSTRUCTOR_PASSCODE = "ri-instructor-2027";
 
@@ -198,24 +214,28 @@ table.bank-table th { background: #003300; color: white; }
         container.innerHTML = html;
     }
 
-    async function adminAddStudent(containerId) {
-        const id = document.getElementById('admin-add-id').value.trim();
-        const email = document.getElementById('admin-add-email').value.trim();
-        const given_name = document.getElementById('admin-add-given').value.trim();
-        const surname = document.getElementById('admin-add-surname').value.trim();
-        const review_section = document.getElementById('admin-add-section').value.trim();
+    async function addManualStudent(containerId) {
+        const isInst = containerId.includes('inst');
+        const id = document.getElementById(isInst ? 'manual-id-inst' : 'manual-id').value.trim();
+        const email = document.getElementById(isInst ? 'manual-email-inst' : 'manual-email').value.trim();
+        const given_name = document.getElementById(isInst ? 'manual-given-inst' : 'manual-given').value.trim();
+        const surname = document.getElementById(isInst ? 'manual-surname-inst' : 'manual-surname').value.trim();
+        const review_section = document.getElementById(isInst ? 'manual-section-inst' : 'manual-section').value.trim();
 
         if (!id || !surname) return alert("Please fill at least the Student ID and Surname.");
 
         const { error } = await supabaseClient.from(activeStudentTable).insert([{ id, email, given_name, surname, review_section }]);
         if (error) return alert("Error adding student: " + error.message);
 
-        alert("Student successfully added!");
-        document.getElementById('admin-add-id').value = "";
-        document.getElementById('admin-add-email').value = "";
-        document.getElementById('admin-add-given').value = "";
-        document.getElementById('admin-add-surname').value = "";
-        document.getElementById('admin-add-section').value = "";
+        alert("Student successfully registered!");
+        
+        // Clear form inputs
+        document.getElementById(isInst ? 'manual-id-inst' : 'manual-id').value = "";
+        document.getElementById(isInst ? 'manual-email-inst' : 'manual-email').value = "";
+        document.getElementById(isInst ? 'manual-given-inst' : 'manual-given').value = "";
+        document.getElementById(isInst ? 'manual-surname-inst' : 'manual-surname').value = "";
+        document.getElementById(isInst ? 'manual-section-inst' : 'manual-section').value = "";
+
         loadAdminStudents(containerId);
     }
 
