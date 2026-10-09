@@ -102,7 +102,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .custom-modal-btn:hover { background: #004d00; }
 
-/* DYNAMIC WATERMARK */
+/* DYNAMIC 5-POINT WATERMARK LAYER (4 Quadrants + 1 Center, Non-overlapping) */
 #watermark-layer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -116,19 +116,30 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     width: 100%; height: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
 }
 .watermark-item {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: rgba(0, 51, 0, 0.16);
-    font-size: 20px;
+    color: rgba(0, 51, 0, 0.12);
+    font-size: 16px;
     font-weight: bold;
     transform: rotate(-25deg);
     user-select: none;
     white-space: nowrap;
     text-align: center;
+}
+#wm-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    color: rgba(0, 51, 0, 0.12);
+    font-size: 16px;
+    font-weight: bold;
+    user-select: none;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 /* PORTAL NAVBAR & LAYOUT */
@@ -271,15 +282,15 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- DYNAMIC WATERMARK LAYER -->
+<!-- DYNAMIC 5-POINT WATERMARK LAYER (4 Quadrants + 1 Center) -->
 <div id="watermark-layer">
     <div class="watermark-grid">
         <div class="watermark-item"><span id="wm-1"></span></div>
         <div class="watermark-item"><span id="wm-2"></span></div>
         <div class="watermark-item"><span id="wm-3"></span></div>
         <div class="watermark-item"><span id="wm-4"></span></div>
-        <div class="watermark-item"><span id="wm-5"></span></div>
     </div>
+    <div id="wm-center"><span id="wm-5"></span></div>
 </div>
 
 <!-- MAIN PORTAL CONTAINER -->
@@ -383,10 +394,10 @@ table.bank-table th { background: #003300; color: white; }
             <div class="card">
                 <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Track your past exam scores and review previous attempts.</p>
                 
-                <!-- MULTI-LINE PERFORMANCE GRAPH CONTAINER -->
+                <!-- INDEPENDENT CATEGORY ATTEMPTS LINE GRAPH CONTAINER -->
                 <div id="performance-graph-container" style="margin-bottom: 20px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; display:none;">
                     <div style="font-size: 12px; font-weight: bold; color: #003300; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>📈 Multi-Category Performance Trend</span>
+                        <span>📈 Subject Performance Trend (Attempt #1, #2, #3...)</span>
                         <div style="display: flex; gap: 6px; font-size: 9px; flex-wrap: wrap;">
                             <span style="color:#000000; font-weight:bold;">■ All Subjects</span>
                             <span style="color:#2e7d32; font-weight:bold;">■ PSAD</span>
@@ -922,13 +933,22 @@ table.bank-table th { background: #003300; color: white; }
         });
 
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
+        let cat = currentExamSession.mainCategory || 'ALL';
+        let titleLower = (currentExamSession.examTitle || '').toLowerCase();
+        if (cat === 'ALL') {
+            if (titleLower.includes('psad')) cat = 'PSAD';
+            else if (titleLower.includes('mstc')) cat = 'MSTC';
+            else if (titleLower.includes('hpge')) cat = 'HPGE';
+            else if (titleLower.includes('board') || titleLower.includes('past')) cat = 'PAST_BOARD';
+        }
+
         history.unshift({ 
             examTitle: currentExamSession.examTitle, 
             date: new Date().toLocaleString(), 
             score, 
             total, 
             percentage: parseFloat(((score/total)*100).toFixed(1)),
-            mainCategory: currentExamSession.mainCategory || 'ALL',
+            mainCategory: cat,
             records: currentExamSession.records 
         });
         localStorage.setItem('ce_exam_history', JSON.stringify(history));
@@ -959,12 +979,7 @@ table.bank-table th { background: #003300; color: white; }
         }
 
         let chronologicalHistory = [...history].reverse();
-        let svgWidth = Math.max(340, chronologicalHistory.length * 75);
-        let svgHeight = 160;
-        let padding = 35;
-        let chartWidth = svgWidth - padding * 2;
-        let chartHeight = svgHeight - padding * 2;
-
+        
         let categories = {
             "ALL": { name: "All Subjects", color: "#000000", attempts: [] },
             "PSAD": { name: "PSAD", color: "#2e7d32", attempts: [] },
@@ -986,6 +1001,13 @@ table.bank-table th { background: #003300; color: white; }
             categories[cat].attempts.push(h);
         });
 
+        let maxAttempts = Math.max(...Object.values(categories).map(c => c.attempts.length), 1);
+        let svgWidth = Math.max(340, maxAttempts * 90);
+        let svgHeight = 160;
+        let padding = 35;
+        let chartWidth = svgWidth - padding * 2;
+        let chartHeight = svgHeight - padding * 2;
+
         let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" style="overflow:visible;">`;
         
         [0, 50, 100].forEach(val => {
@@ -994,22 +1016,21 @@ table.bank-table th { background: #003300; color: white; }
             svgHtml += `<text x="${padding - 5}" y="${gy + 4}" font-size="10" text-anchor="end" fill="#666">${val}%</text>`;
         });
 
-        chronologicalHistory.forEach((_, idx) => {
-            let x = chronologicalHistory.length === 1 
+        for (let aIdx = 0; aIdx < maxAttempts; aIdx++) {
+            let x = maxAttempts === 1 
                 ? padding + chartWidth / 2 
-                : padding + (idx / (chronologicalHistory.length - 1)) * chartWidth;
-            svgHtml += `<text x="${x}" y="${padding + chartHeight + 15}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
-        });
+                : padding + (aIdx / (maxAttempts - 1)) * chartWidth;
+            svgHtml += `<text x="${x}" y="${padding + chartHeight + 15}" font-size="9" text-anchor="middle" fill="#888">#${aIdx + 1}</text>`;
+        }
 
         Object.keys(categories).forEach(catKey => {
             let cat = categories[catKey];
             if (cat.attempts.length === 0) return;
 
-            let points = cat.attempts.map((att) => {
-                let globalIdx = chronologicalHistory.indexOf(att);
-                let x = chronologicalHistory.length === 1 
+            let points = cat.attempts.map((att, aIdx) => {
+                let x = maxAttempts === 1 
                     ? padding + chartWidth / 2 
-                    : padding + (globalIdx / (chronologicalHistory.length - 1)) * chartWidth;
+                    : padding + (aIdx / (maxAttempts - 1)) * chartWidth;
                 let y = padding + chartHeight - (att.percentage / 100) * chartHeight;
                 return { x, y, percentage: att.percentage, color: cat.color };
             });
@@ -1046,4 +1067,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-    </html>
+                    </html>
