@@ -963,14 +963,13 @@ table.bank-table th { background: #003300; color: white; }
         let chartHeight = svgHeight - padding * 2;
 
         let points = chronologicalHistory.map((h, i) => {
-            // Span full width from left padding to right padding regardless of attempts count
+            // First and last point span the entire width of the graph regardless of attempt count
             let x = chronologicalHistory.length === 1 
                 ? padding + chartWidth / 2 
                 : padding + (i / (chronologicalHistory.length - 1)) * chartWidth;
             
-            // Starts at zero point (0% on first attempt)
-            let effectivePercentage = (i === 0) ? 0 : h.percentage;
-            let y = padding + chartHeight - (effectivePercentage / 100) * chartHeight;
+            // Starts directly at the first attempt's actual score percentage (no forced zero)
+            let y = padding + chartHeight - (h.percentage / 100) * chartHeight;
             
             let titleLower = (h.examTitle || "").toLowerCase();
             let color = "#000000"; // All subjects = black
@@ -979,7 +978,7 @@ table.bank-table th { background: #003300; color: white; }
             else if (titleLower.includes('hpge')) color = "#1565c0"; // HPGE = blue
             else if (titleLower.includes('board') || titleLower.includes('past')) color = "#fbc02d"; // Board Exam = yellow
 
-            return { x, y, percentage: effectivePercentage, realPercentage: h.percentage, date: h.date, color, title: h.examTitle };
+            return { x, y, percentage: h.percentage, date: h.date, color, title: h.examTitle };
         });
 
         let polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
@@ -1006,7 +1005,7 @@ table.bank-table th { background: #003300; color: white; }
 
         points.forEach((p, idx) => {
             svgHtml += `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="${p.color}" stroke="#fff" stroke-width="1.5" />`;
-            svgHtml += `<text x="${p.x}" y="${p.y - 8}" font-size="10" font-weight="bold" text-anchor="middle" fill="${p.color}">${p.realPercentage}%</text>`;
+            svgHtml += `<text x="${p.x}" y="${p.y - 8}" font-size="10" font-weight="bold" text-anchor="middle" fill="${p.color}">${p.percentage}%</text>`;
             svgHtml += `<text x="${p.x}" y="${padding + chartHeight + 14}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
         });
         svgHtml += `</svg>`;
@@ -1030,4 +1029,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-</html>
+    </html>
