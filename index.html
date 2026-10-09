@@ -62,7 +62,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ms-btn:hover { background: #1f1f1f; }
 
-/* CUSTOM MODAL OVERLAY (REPLACES BROWSER ALERTS) */
+/* CUSTOM MODAL OVERLAY */
 #custom-modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -150,7 +150,6 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 }
 .ri-logo-img { height: 35px; width: auto; border-radius: 4px; border: 1px solid #ccff00; object-fit: contain; }
 
-/* TOP RIGHT USERNAME BADGE */
 #nav-student-badge {
     color: #ccff00;
     font-size: 12px;
@@ -222,7 +221,7 @@ button.action-btn { background: #20639b; color: white; border: none; padding: 6p
 
 .solution-box { background: #e8f5e9; padding: 15px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #4caf50; display: none; font-size: 14px; line-height: 1.6; color: #111; word-break: break-word; }
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
-table.bank-table { width: 100%; border-collapse: collapse; min-width: 450px; }
+table.bank-table { width: 100%; border-collapse: collapse; min-width: 500px; }
 table.bank-table th, table.bank-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
 table.bank-table th { background: #003300; color: white; }
 </style>
@@ -273,7 +272,7 @@ table.bank-table th { background: #003300; color: white; }
     </div>
 </div>
 
-<!-- DYNAMIC WATERMARK LAYER (5 PCS, EMAIL HANDLE ONLY, 16% OPACITY) -->
+<!-- DYNAMIC WATERMARK LAYER -->
 <div id="watermark-layer">
     <div class="watermark-grid">
         <div class="watermark-item"><span id="wm-1"></span></div>
@@ -383,7 +382,22 @@ table.bank-table th { background: #003300; color: white; }
         <div id="history-tab" class="tab-content">
             <h2 style="font-size: 18px; margin-top: 5px; color: #003300;">Performance History</h2>
             <div class="card">
-                <p style="font-size: 13px; color: #666;">Track your past exam scores and review previous attempts.</p>
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Track your past exam scores and review previous attempts.</p>
+                
+                <!-- PERFORMANCE LINE GRAPH CONTAINER -->
+                <div id="performance-graph-container" style="margin-bottom: 20px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; display:none;">
+                    <div style="font-size: 12px; font-weight: bold; color: #003300; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📈 Performance Trend (First to Latest)</span>
+                        <div style="display: flex; gap: 8px; font-size: 10px; flex-wrap: wrap;">
+                            <span style="color:#000;">■ All Subjects</span>
+                            <span style="color:#2e7d32;">■ PSAD</span>
+                            <span style="color:#c62828;">■ MSTC</span>
+                            <span style="color:#1565c0;">■ HPGE</span>
+                        </div>
+                    </div>
+                    <div id="svg-graph-wrapper" style="width: 100%; overflow-x: auto;"></div>
+                </div>
+
                 <div id="history-records-container" class="table-responsive">No exam history recorded yet.</div>
             </div>
         </div>
@@ -401,7 +415,6 @@ table.bank-table th { background: #003300; color: white; }
     let localDB = [];
     const activeStudentTable = 'enrolled_students';
 
-    // Custom Modal Dialog Helper (Removes browser prompt domains)
     function showModal(msg) {
         document.getElementById('custom-modal-text').innerText = msg;
         document.getElementById('custom-modal-overlay').style.display = 'flex';
@@ -756,46 +769,57 @@ table.bank-table th { background: #003300; color: white; }
         document.getElementById('custom-count-group').style.display = (count === 'custom') ? 'block' : 'none';
     }
 
-    function startCustomExam() {
+    function startCustomExam(preselectedRecords = null, customTitle = null) {
         if (localDB.length === 0) { showModal("Database is empty!"); return; }
-        const main = document.getElementById('gen-main').value;
-        const sub = document.getElementById('gen-sub').value;
-        const boardTerm = document.getElementById('gen-board-term').value;
-        const countSelect = document.getElementById('gen-count').value;
-        const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
         
-        let timeInput = document.getElementById('gen-time').value;
-        let timeMinutes = timeInput.toLowerCase() === 'default' || !timeInput ? totalItems * 4 : parseInt(timeInput);
+        let selectedRecords = preselectedRecords;
+        let examTitle = customTitle;
 
-        let pool = [];
-        if (main === 'ALL') { pool = [...localDB]; }
-        else if (main === 'PAST_BOARD') {
-            pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
-            if (sub !== 'ALL') pool = pool.filter(r => r.main === sub);
-            if (boardTerm !== 'ALL') pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
-        } else {
-            pool = localDB.filter(r => r.main === main);
-            if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
+        if (!selectedRecords) {
+            const main = document.getElementById('gen-main').value;
+            const sub = document.getElementById('gen-sub').value;
+            const boardTerm = document.getElementById('gen-board-term').value;
+            const countSelect = document.getElementById('gen-count').value;
+            const totalItems = countSelect === 'custom' ? parseInt(document.getElementById('gen-custom-input').value) || 15 : parseInt(countSelect);
+            
+            let pool = [];
+            if (main === 'ALL') { pool = [...localDB]; }
+            else if (main === 'PAST_BOARD') {
+                pool = localDB.filter(r => r.isPastBoard || (r.questions && r.questions.some(q => q.isPastBoard)));
+                if (sub !== 'ALL') pool = pool.filter(r => r.main === sub);
+                if (boardTerm !== 'ALL') pool = pool.filter(r => `${r.boardMonth} ${r.boardYear}` === boardTerm);
+            } else {
+                pool = localDB.filter(r => r.main === main);
+                if (sub !== 'ALL') pool = pool.filter(r => r.sub === sub);
+            }
+
+            if (pool.length === 0) { showModal("No questions available matching filters."); return; }
+            let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
+            selectedRecords = [];
+            let accumulatedQuestionsCount = 0;
+
+            for (let record of shuffledPool) {
+                if (accumulatedQuestionsCount >= totalItems) break;
+                selectedRecords.push(record);
+                accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
+            }
+            examTitle = `Custom Quiz (${main} - ${accumulatedQuestionsCount} Items)`;
         }
 
-        if (pool.length === 0) { showModal("No questions available matching filters."); return; }
-        let shuffledPool = [...pool].sort(() => 0.5 - Math.random());
-        let selectedRecords = [];
-        let accumulatedQuestionsCount = 0;
+        let totalItemsCount = selectedRecords.reduce((acc, r) => acc + (r.questions ? r.questions.length : 1), 0);
+        let timeMinutes = totalItemsCount * 4;
 
-        for (let record of shuffledPool) {
-            if (accumulatedQuestionsCount >= totalItems) break;
-            selectedRecords.push(record);
-            accumulatedQuestionsCount += (record.questions && record.questions.length > 0 ? record.questions.length : 1);
-        }
-
-        renderActiveExam(selectedRecords, timeMinutes, 'EXAM_' + Date.now(), `Custom Quiz (${main} - ${accumulatedQuestionsCount} Items)`);
+        renderActiveExam(selectedRecords, timeMinutes, 'EXAM_' + Date.now(), examTitle);
     }
 
     let currentExamSession = null;
 
     function renderActiveExam(records, timeMinutes, examId, examTitle) {
         currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
+        switchTab('generator');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-tab')[1].classList.add('active'); // highlight Quiz Gen tab
+
         document.getElementById('active-exam-container').style.display = 'block';
         document.getElementById('exam-title-header').innerText = examTitle;
 
@@ -896,22 +920,109 @@ table.bank-table th { background: #003300; color: white; }
         });
 
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        history.unshift({ examTitle: currentExamSession.examTitle, date: new Date().toLocaleString(), score, total, percentage: ((score/total)*100).toFixed(1) });
+        history.unshift({ 
+            examTitle: currentExamSession.examTitle, 
+            date: new Date().toLocaleString(), 
+            score, 
+            total, 
+            percentage: parseFloat(((score/total)*100).toFixed(1)),
+            records: currentExamSession.records 
+        });
         localStorage.setItem('ce_exam_history', JSON.stringify(history));
         showModal(`Exam Submitted! Score: ${score}/${total} (${((score/total)*100).toFixed(1)}%)`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function retakeExam(index) {
+        let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
+        let item = history[index];
+        if (!item || !item.records) {
+            showModal("Unable to retake: Question records not found for this session.");
+            return;
+        }
+        startCustomExam(item.records, item.examTitle + " (Retake)");
+    }
+
     function renderExamHistory() {
         const container = document.getElementById('history-records-container');
+        const graphContainer = document.getElementById('performance-graph-container');
+        const svgWrapper = document.getElementById('svg-graph-wrapper');
+        
         let history = JSON.parse(localStorage.getItem('ce_exam_history')) || [];
-        if (history.length === 0) { container.innerHTML = "No exam history recorded."; return; }
-        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th></tr></thead><tbody>`;
-        history.history?.forEach?.(h => { html += `<tr><td>${h.date}</td><td>${h.examTitle}</td><td><strong>${h.score}/${h.total}</strong></td><td>${h.percentage}%</td></tr>`; }) || 
-        history.forEach(h => { html += `<tr><td>${h.date}</td><td>${h.examTitle}</td><td><strong>${h.score}/${h.total}</strong></td><td>${h.percentage}%</td></tr>`; });
+        if (history.length === 0) { 
+            container.innerHTML = "No exam history recorded."; 
+            graphContainer.style.display = 'none';
+            return; 
+        }
+
+        // Render Line Graph (Chronological order: First attempt on left, Latest on right)
+        let chronologicalHistory = [...history].reverse();
+        let svgWidth = Math.max(300, chronologicalHistory.length * 70);
+        let svgHeight = 140;
+        let padding = 30;
+        let chartWidth = svgWidth - padding * 2;
+        let chartHeight = svgHeight - padding * 2;
+
+        let points = chronologicalHistory.map((h, i) => {
+            let x = padding + (chronologicalHistory.length === 1 ? chartWidth / 2 : (i / (chronologicalHistory.length - 1)) * chartWidth);
+            let y = padding + chartHeight - (h.percentage / 100) * chartHeight;
+            let titleLower = (h.examTitle || "").toLowerCase();
+            let color = "#000000"; // default All subjects = black
+            if (titleLower.includes('psad')) color = "#2e7d32";      // green
+            else if (titleLower.includes('mstc')) color = "#c62828"; // red
+            else if (titleLower.includes('hpge')) color = "#1565c0"; // blue
+            return { x, y, percentage: h.percentage, date: h.date, color, title: h.examTitle };
+        });
+
+        let polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+        let strokeColor = "#003300";
+        if (chronologicalHistory.length > 0) {
+            let t = (chronologicalHistory[0].examTitle || "").toLowerCase();
+            if (t.includes('psad')) strokeColor = "#2e7d32";
+            else if (t.includes('mstc')) strokeColor = "#c62828";
+            else if (t.includes('hpge')) strokeColor = "#1565c0";
+            else if (t.includes('all')) strokeColor = "#000000";
+        }
+
+        let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" style="overflow:visible;">`;
+        // Grid lines
+        [0, 50, 100].forEach(val => {
+            let gy = padding + chartHeight - (val / 100) * chartHeight;
+            svgHtml += `<line x1="${padding}" y1="${gy}" x2="${svgWidth - padding}" y2="${gy}" stroke="#e0e0e0" stroke-dasharray="3,3" />`;
+            svgHtml += `<text x="${padding - 5}" y="${gy + 4}" font-size="10" text-anchor="end" fill="#666">${val}%</text>`;
+        });
+
+        // Polyline line connecting points
+        if (points.length > 1) {
+            svgHtml += `<polyline fill="none" stroke="${strokeColor}" stroke-width="2.5" points="${polylinePoints}" />`;
+        }
+
+        // Plot points & values
+        points.forEach((p, idx) => {
+            svgHtml += `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="${p.color}" stroke="#fff" stroke-width="1.5" />`;
+            svgHtml += `<text x="${p.x}" y="${p.y - 8}" font-size="10" font-weight="bold" text-anchor="middle" fill="${p.color}">${p.percentage}%</text>`;
+            svgHtml += `<text x="${p.x}" y="${padding + chartHeight + 14}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
+        });
+        svgHtml += `</svg>`;
+
+        svgWrapper.innerHTML = svgHtml;
+        graphContainer.style.display = 'block';
+
+        // Render Table
+        let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th><th>Action</th></tr></thead><tbody>`;
+        history.forEach((h, index) => { 
+            let originalIndex = index; // index in current descending history array
+            html += `<tr>
+                <td>${h.date}</td>
+                <td>${h.examTitle}</td>
+                <td><strong>${h.score}/${h.total}</strong></td>
+                <td>${h.percentage}%</td>
+                <td><button type="button" onclick="retakeExam(${originalIndex})" class="action-btn">🔄 Retake</button></td>
+            </tr>`; 
+        });
         html += `</tbody></table>`;
         container.innerHTML = html;
     }
 </script>
 </body>
-                </html>
+</html>
