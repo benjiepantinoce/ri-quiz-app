@@ -383,16 +383,16 @@ table.bank-table th { background: #003300; color: white; }
             <div class="card">
                 <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Track your past exam scores and review previous attempts.</p>
                 
-                <!-- PERFORMANCE LINE GRAPH CONTAINER -->
+                <!-- MULTI-LINE PERFORMANCE GRAPH CONTAINER -->
                 <div id="performance-graph-container" style="margin-bottom: 20px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; display:none;">
-                    <div style="font-size: 12px; font-weight: bold; color: #003300; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>📈 Performance Trend (First to Latest)</span>
+                    <div style="font-size: 12px; font-weight: bold; color: #003300; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📈 Multi-Category Performance Trend</span>
                         <div style="display: flex; gap: 6px; font-size: 9px; flex-wrap: wrap;">
-                            <span style="color:#000;">■ All Subjects</span>
-                            <span style="color:#2e7d32;">■ PSAD</span>
-                            <span style="color:#c62828;">■ MSTC</span>
-                            <span style="color:#1565c0;">■ HPGE</span>
-                            <span style="color:#fbc02d;">■ Board Exam</span>
+                            <span style="color:#000000; font-weight:bold;">■ All Subjects</span>
+                            <span style="color:#2e7d32; font-weight:bold;">■ PSAD</span>
+                            <span style="color:#c62828; font-weight:bold;">■ MSTC</span>
+                            <span style="color:#1565c0; font-weight:bold;">■ HPGE</span>
+                            <span style="color:#fbc02d; font-weight:bold;">■ Board Exam</span>
                         </div>
                     </div>
                     <div id="svg-graph-wrapper" style="width: 100%; overflow-x: auto;"></div>
@@ -774,9 +774,11 @@ table.bank-table th { background: #003300; color: white; }
         
         let selectedRecords = preselectedRecords;
         let examTitle = customTitle;
+        let mainCategory = document.getElementById('gen-main').value;
 
         if (!selectedRecords) {
             const main = document.getElementById('gen-main').value;
+            mainCategory = main;
             const sub = document.getElementById('gen-sub').value;
             const boardTerm = document.getElementById('gen-board-term').value;
             const countSelect = document.getElementById('gen-count').value;
@@ -809,13 +811,13 @@ table.bank-table th { background: #003300; color: white; }
         let totalItemsCount = selectedRecords.reduce((acc, r) => acc + (r.questions ? r.questions.length : 1), 0);
         let timeMinutes = totalItemsCount * 4;
 
-        renderActiveExam(selectedRecords, timeMinutes, 'EXAM_' + Date.now(), examTitle);
+        renderActiveExam(selectedRecords, timeMinutes, 'EXAM_' + Date.now(), examTitle, mainCategory);
     }
 
     let currentExamSession = null;
 
-    function renderActiveExam(records, timeMinutes, examId, examTitle) {
-        currentExamSession = { examId: examId, examTitle: examTitle, records: records, startTime: Date.now() };
+    function renderActiveExam(records, timeMinutes, examId, examTitle, mainCategory) {
+        currentExamSession = { examId: examId, examTitle: examTitle, records: records, mainCategory: mainCategory, startTime: Date.now() };
         switchTab('generator');
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-tab')[1].classList.add('active');
@@ -926,6 +928,7 @@ table.bank-table th { background: #003300; color: white; }
             score, 
             total, 
             percentage: parseFloat(((score/total)*100).toFixed(1)),
+            mainCategory: currentExamSession.mainCategory || 'ALL',
             records: currentExamSession.records 
         });
         localStorage.setItem('ce_exam_history', JSON.stringify(history));
@@ -956,63 +959,82 @@ table.bank-table th { background: #003300; color: white; }
         }
 
         let chronologicalHistory = [...history].reverse();
-        let svgWidth = Math.max(320, chronologicalHistory.length * 75);
-        let svgHeight = 140;
-        let padding = 30;
+        let svgWidth = Math.max(340, chronologicalHistory.length * 75);
+        let svgHeight = 160;
+        let padding = 35;
         let chartWidth = svgWidth - padding * 2;
         let chartHeight = svgHeight - padding * 2;
 
-        let points = chronologicalHistory.map((h, i) => {
-            // First and last point span the entire width of the graph regardless of attempt count
-            let x = chronologicalHistory.length === 1 
-                ? padding + chartWidth / 2 
-                : padding + (i / (chronologicalHistory.length - 1)) * chartWidth;
-            
-            // Starts directly at the first attempt's actual score percentage (no forced zero)
-            let y = padding + chartHeight - (h.percentage / 100) * chartHeight;
-            
-            let titleLower = (h.examTitle || "").toLowerCase();
-            let color = "#000000"; // All subjects = black
-            if (titleLower.includes('psad')) color = "#2e7d32";      // PSAD = green
-            else if (titleLower.includes('mstc')) color = "#c62828"; // MSTC = red
-            else if (titleLower.includes('hpge')) color = "#1565c0"; // HPGE = blue
-            else if (titleLower.includes('board') || titleLower.includes('past')) color = "#fbc02d"; // Board Exam = yellow
+        // Group chronological history attempts by their respective category
+        let categories = {
+            "ALL": { name: "All Subjects", color: "#000000", attempts: [] },
+            "PSAD": { name: "PSAD", color: "#2e7d32", attempts: [] },
+            "MSTC": { name: "MSTC", color: "#c62828", attempts: [] },
+            "HPGE": { name: "HPGE", color: "#1565c0", attempts: [] },
+            "PAST_BOARD": { name: "Board Exam", color: "#fbc02d", attempts: [] }
+        };
 
-            return { x, y, percentage: h.percentage, date: h.date, color, title: h.examTitle };
+        chronologicalHistory.forEach(h => {
+            let cat = h.mainCategory || "ALL";
+            let titleLower = (h.examTitle || "").toLowerCase();
+            if (!categories[cat]) {
+                if (titleLower.includes('psad')) cat = "PSAD";
+                else if (titleLower.includes('mstc')) cat = "MSTC";
+                else if (titleLower.includes('hpge')) cat = "HPGE";
+                else if (titleLower.includes('board') || titleLower.includes('past')) cat = "PAST_BOARD";
+                else cat = "ALL";
+            }
+            categories[cat].attempts.push(h);
         });
 
-        let polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
-        let strokeColor = "#003300";
-        if (chronologicalHistory.length > 0) {
-            let t = (chronologicalHistory[0].examTitle || "").toLowerCase();
-            if (t.includes('psad')) strokeColor = "#2e7d32";
-            else if (t.includes('mstc')) strokeColor = "#c62828";
-            else if (t.includes('hpge')) strokeColor = "#1565c0";
-            else if (t.includes('board') || t.includes('past')) strokeColor = "#fbc02d";
-            else if (t.includes('all')) strokeColor = "#000000";
-        }
-
         let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" style="overflow:visible;">`;
+        
+        // Grid lines (0%, 50%, 100%)
         [0, 50, 100].forEach(val => {
             let gy = padding + chartHeight - (val / 100) * chartHeight;
             svgHtml += `<line x1="${padding}" y1="${gy}" x2="${svgWidth - padding}" y2="${gy}" stroke="#e0e0e0" stroke-dasharray="3,3" />`;
             svgHtml += `<text x="${padding - 5}" y="${gy + 4}" font-size="10" text-anchor="end" fill="#666">${val}%</text>`;
         });
 
-        if (points.length > 1) {
-            svgHtml += `<polyline fill="none" stroke="${strokeColor}" stroke-width="2.5" points="${polylinePoints}" />`;
-        }
-
-        points.forEach((p, idx) => {
-            svgHtml += `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="${p.color}" stroke="#fff" stroke-width="1.5" />`;
-            svgHtml += `<text x="${p.x}" y="${p.y - 8}" font-size="10" font-weight="bold" text-anchor="middle" fill="${p.color}">${p.percentage}%</text>`;
-            svgHtml += `<text x="${p.x}" y="${padding + chartHeight + 14}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
+        // X-axis index labels at bottom
+        chronologicalHistory.forEach((_, idx) => {
+            let x = chronologicalHistory.length === 1 
+                ? padding + chartWidth / 2 
+                : padding + (idx / (chronologicalHistory.length - 1)) * chartWidth;
+            svgHtml += `<text x="${x}" y="${padding + chartHeight + 15}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
         });
-        svgHtml += `</svg>`;
 
+        // Draw separate trend line for each category that has attempts
+        Object.keys(categories).forEach(catKey => {
+            let cat = categories[catKey];
+            if (cat.attempts.length === 0) return;
+
+            let points = cat.attempts.map((att) => {
+                let globalIdx = chronologicalHistory.indexOf(att);
+                let x = chronologicalHistory.length === 1 
+                    ? padding + chartWidth / 2 
+                    : padding + (globalIdx / (chronologicalHistory.length - 1)) * chartWidth;
+                let y = padding + chartHeight - (att.percentage / 100) * chartHeight;
+                return { x, y, percentage: att.percentage, color: cat.color };
+            });
+
+            let polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+            if (points.length > 1) {
+                svgHtml += `<polyline fill="none" stroke="${cat.color}" stroke-width="2.5" points="${polylinePoints}" />`;
+            }
+
+            points.forEach((p) => {
+                svgHtml += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${p.color}" stroke="#fff" stroke-width="1.5" />`;
+                svgHtml += `<text x="${p.x}" y="${p.y - 7}" font-size="9" font-weight="bold" text-anchor="middle" fill="${p.color}">${p.percentage}%</text>`;
+            });
+        });
+
+        svgHtml += `</svg>`;
         svgWrapper.innerHTML = svgHtml;
         graphContainer.style.display = 'block';
 
+        // Render History Table
         let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th><th>Action</th></tr></thead><tbody>`;
         history.forEach((h, index) => { 
             let originalIndex = index;
