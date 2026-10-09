@@ -965,7 +965,6 @@ table.bank-table th { background: #003300; color: white; }
         let chartWidth = svgWidth - padding * 2;
         let chartHeight = svgHeight - padding * 2;
 
-        // Group chronological history attempts by their respective category
         let categories = {
             "ALL": { name: "All Subjects", color: "#000000", attempts: [] },
             "PSAD": { name: "PSAD", color: "#2e7d32", attempts: [] },
@@ -989,14 +988,12 @@ table.bank-table th { background: #003300; color: white; }
 
         let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" style="overflow:visible;">`;
         
-        // Grid lines (0%, 50%, 100%)
         [0, 50, 100].forEach(val => {
             let gy = padding + chartHeight - (val / 100) * chartHeight;
             svgHtml += `<line x1="${padding}" y1="${gy}" x2="${svgWidth - padding}" y2="${gy}" stroke="#e0e0e0" stroke-dasharray="3,3" />`;
             svgHtml += `<text x="${padding - 5}" y="${gy + 4}" font-size="10" text-anchor="end" fill="#666">${val}%</text>`;
         });
 
-        // X-axis index labels at bottom
         chronologicalHistory.forEach((_, idx) => {
             let x = chronologicalHistory.length === 1 
                 ? padding + chartWidth / 2 
@@ -1004,7 +1001,6 @@ table.bank-table th { background: #003300; color: white; }
             svgHtml += `<text x="${x}" y="${padding + chartHeight + 15}" font-size="9" text-anchor="middle" fill="#888">#${idx + 1}</text>`;
         });
 
-        // Draw separate trend line for each category that has attempts
         Object.keys(categories).forEach(catKey => {
             let cat = categories[catKey];
             if (cat.attempts.length === 0) return;
@@ -1034,7 +1030,6 @@ table.bank-table th { background: #003300; color: white; }
         svgWrapper.innerHTML = svgHtml;
         graphContainer.style.display = 'block';
 
-        // Render History Table
         let html = `<table class="bank-table"><thead><tr><th>Date</th><th>Exam Title</th><th>Score</th><th>%</th><th>Action</th></tr></thead><tbody>`;
         history.forEach((h, index) => { 
             let originalIndex = index;
