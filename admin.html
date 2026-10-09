@@ -734,7 +734,6 @@
         updatePreview();
     }
 
-    // Synced Student Portal Preview Logic with Interactive Selection Styling
     function updatePreview() {
         const isSit = document.getElementById('is-situational').value === 'Yes';
         const codeVal = isSit ? (document.getElementById('situation-code').value || "PSAD-SIT-001") : (document.getElementById('standalone-code').value || "PSAD-RCD-001");
@@ -783,7 +782,6 @@
             container.appendChild(qDiv);
         });
 
-        // Add interactive choice highlighting identical to student portal behavior
         container.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const name = this.getAttribute('name');
@@ -818,11 +816,15 @@
         const isPastBoardSituation = isSit === 'Yes' ? document.getElementById('is-past-board-situation').checked : false;
         const boardMonth = document.getElementById('board-month').value;
         const boardYear = document.getElementById('board-year').value;
-        const codeId = isSit ? document.getElementById('situation-code').value : document.getElementById('standalone-code').value;
+        
+        // Fixed: Correctly evaluates codeId depending on whether it's situational or standalone
+        const codeId = isSit === 'Yes' 
+            ? document.getElementById('situation-code').value.trim() 
+            : document.getElementById('standalone-code').value.trim();
         
         if (!codeId) return alert("Please enter a Situation ID / Code or Question ID.");
 
-        const scenario = isSit ? document.getElementById('scenario-text').value : "";
+        const scenario = isSit === 'Yes' ? document.getElementById('scenario-text').value : "";
         const globalSolution = document.getElementById('global-solution-text').value;
         const blocks = document.querySelectorAll('.question-block-card');
 
