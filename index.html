@@ -190,7 +190,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
 .nav-tab:hover { background: rgba(255,255,255,0.1); }
 .nav-tab.active { background: #1e5223; color: #ccff00; border-top: none; }
 
-/* SITUATIONAL PROBLEM BOX STYLING */
+/* PROBLEM TEXT & SITUATION STYLING */
 .situation-box {
     background: #eef2f3;
     padding: 12px;
@@ -198,6 +198,11 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     border-left: 4px solid #003300;
     font-size: 14px;
     line-height: 1.5;
+}
+.question-text {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
 }
 
 @media (min-width: 768px) {
@@ -209,12 +214,13 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     .nav-tab { padding: 0 15px; height: 65px; font-size: 14px; border-radius: 0; }
     .nav-tab.active { border-top: 3px solid #ccff00; background: #1e5223; color: #fff; }
 
-    /* Responsive Font Scaling for Desktop / Tablet */
+    /* Responsive Uniform Font Scaling for Desktop / Tablet */
     body { font-size: 16px; }
     .card { padding: 20px; font-size: 16px; }
     select, input, textarea { font-size: 16px; padding: 12px; }
     .choice-item { font-size: 15px; padding: 14px; }
-    .situation-box { font-size: 16px; padding: 16px; } /* Ensures situational text scales up on desktop/tablet */
+    .situation-box { font-size: 16px; padding: 16px; }
+    .question-text { font-size: 16px; } /* Ensures questions match situation font size */
 }
 
 .container { max-width: 950px; margin: 10px auto; background: white; padding: 12px; min-height: calc(100vh - 70px); border-radius: 6px; }
@@ -766,7 +772,7 @@ table.bank-table th { background: #003300; color: white; }
             <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#003300;">[${record.id}] ${record.main} / ${record.sub}</div>
             ${record.scenario ? `<div class="situation-box"><strong>Situation [${record.id}]:</strong><br>${record.scenario}</div>` : ''}
             ${imagesHtml}
-            <div style="margin-bottom:12px; font-size:14px; line-height:1.5;">${q.question}</div>
+            <div class="question-text">${q.question}</div>
             <label class="choice-item"><input type="radio" name="daily_ans" value="A"> A. ${q.options.A}</label>
             <label class="choice-item"><input type="radio" name="daily_ans" value="B"> B. ${q.options.B}</label>
             <label class="choice-item"><input type="radio" name="daily_ans" value="C"> C. ${q.options.C}</label>
@@ -887,7 +893,7 @@ table.bank-table th { background: #003300; color: white; }
                 htmlContent += `
                     <div id="question_wrapper_${currentGlobalIdx}" style="margin-bottom: 15px; padding-bottom: 12px; ${qIdx < record.questions.length - 1 ? 'border-bottom: 1px dashed #dcdcdc;' : ''}">
                         <div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#003300;">Question ${globalRenderIdx++}</div>
-                        <div style="margin-bottom:10px; font-size:14px; line-height:1.5;">${q.question}</div>
+                        <div class="question-text">${q.question}</div>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="A"> A. ${q.options.A}</label>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="B"> B. ${q.options.B}</label>
                         <label class="choice-item"><input type="radio" name="exam_q_${currentGlobalIdx}" value="C"> C. ${q.options.C}</label>
