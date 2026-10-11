@@ -123,7 +123,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     justify-content: center;
     align-items: center;
     color: rgba(0, 51, 0, 0.12);
-    font-size: 16px;
+    font-size: clamp(16px, 3vw, 36px);
     font-weight: bold;
     transform: rotate(-25deg);
     user-select: none;
@@ -135,7 +135,7 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     top: 50%; left: 50%;
     transform: translate(-50%, -50%) rotate(-25deg);
     color: rgba(0, 51, 0, 0.12);
-    font-size: 16px;
+    font-size: clamp(16px, 3vw, 36px);
     font-weight: bold;
     user-select: none;
     white-space: nowrap;
@@ -454,6 +454,7 @@ table.bank-table th { background: #003300; color: white; }
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
+                microsoftTeams.app.notifySuccess(); // FIX: Added manual success signal 
                 const context = await microsoftTeams.app.getContext();
                 if (context && context.user) {
                     const email = context.user.loginHint || context.user.userPrincipalName;
@@ -584,6 +585,7 @@ table.bank-table th { background: #003300; color: white; }
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
+                microsoftTeams.app.notifySuccess(); // FIX: Added manual success signal
                 const context = await Promise.race([
                     microsoftTeams.app.getContext(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 500))
@@ -613,6 +615,12 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        // FIX: Ensure Teams desktop client receives readiness signal immediately upon load, bypassing conditional auth branches
+        if (typeof microsoftTeams !== 'undefined') {
+            microsoftTeams.app.initialize().then(() => {
+                microsoftTeams.app.notifySuccess();
+            }).catch(e => console.log(e));
+        }
         checkUserSession();
     });
 
@@ -1067,4 +1075,4 @@ table.bank-table th { background: #003300; color: white; }
     }
 </script>
 </body>
-                    </html>
+</html>
