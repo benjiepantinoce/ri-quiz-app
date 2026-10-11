@@ -198,6 +198,14 @@ body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 
     .nav-tabs { width: auto; gap: 2px; flex-wrap: nowrap; }
     .nav-tab { padding: 0 15px; height: 65px; font-size: 14px; border-radius: 0; }
     .nav-tab.active { border-top: 3px solid #ccff00; background: #1e5223; color: #fff; }
+
+    /* Responsive Font Scaling for Desktop / Tablet */
+    body { font-size: 16px; }
+    .card { padding: 20px; font-size: 16px; }
+    select, input, textarea { font-size: 16px; padding: 12px; }
+    .choice-item { font-size: 15px; padding: 14px; }
+    div[style*="font-size:14px"] { font-size: 16px !important; }
+    div[style*="font-size:13px"] { font-size: 14px !important; }
 }
 
 .container { max-width: 950px; margin: 10px auto; background: white; padding: 12px; min-height: calc(100vh - 70px); border-radius: 6px; }
