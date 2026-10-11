@@ -454,7 +454,7 @@ table.bank-table th { background: #003300; color: white; }
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
-                microsoftTeams.app.notifySuccess(); // FIX: Added manual success signal 
+                microsoftTeams.app.notifySuccess();
                 const context = await microsoftTeams.app.getContext();
                 if (context && context.user) {
                     const email = context.user.loginHint || context.user.userPrincipalName;
@@ -539,8 +539,8 @@ table.bank-table th { background: #003300; color: white; }
         const layer = document.getElementById('watermark-layer');
         layer.style.display = 'block';
         
-        let emailHandle = student.email ? student.email.split('@')[0] : (student.given_name || 'student');
-        const watermarkText = `${emailHandle} (${student.id || ''})`;
+        // Displays only the user handle/email prefix without the ID
+        const watermarkText = student.email ? student.email.split('@')[0] : (student.given_name || 'student');
 
         document.getElementById('wm-1').innerText = watermarkText;
         document.getElementById('wm-2').innerText = watermarkText;
@@ -585,7 +585,7 @@ table.bank-table th { background: #003300; color: white; }
         if (typeof microsoftTeams !== 'undefined') {
             try {
                 await microsoftTeams.app.initialize();
-                microsoftTeams.app.notifySuccess(); // FIX: Added manual success signal
+                microsoftTeams.app.notifySuccess();
                 const context = await Promise.race([
                     microsoftTeams.app.getContext(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 500))
@@ -615,7 +615,6 @@ table.bank-table th { background: #003300; color: white; }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        // FIX: Ensure Teams desktop client receives readiness signal immediately upon load, bypassing conditional auth branches
         if (typeof microsoftTeams !== 'undefined') {
             microsoftTeams.app.initialize().then(() => {
                 microsoftTeams.app.notifySuccess();
