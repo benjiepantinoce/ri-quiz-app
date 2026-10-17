@@ -53,21 +53,28 @@
             border-radius: 4px;
         }
 
+        .nav-center-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+
         .nav-tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
         .nav-tab {
-            background: #e6f4ea;
+            background: #f1f5f2;
             border: 1px solid var(--border-color);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            color: var(--ri-green);
+            color: #444;
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 4px;
             transition: all 0.2s;
         }
@@ -280,12 +287,16 @@
             <div class="ri-logo-box">RI!</div>
             <span>Review Innovations Replays</span>
         </div>
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('Weekly Videos', this)">Weekly Videos</button>
-            <button class="nav-tab" onclick="switchTab('PSAD', this)">PSAD</button>
-            <button class="nav-tab" onclick="switchTab('MSTC', this)">MSTC</button>
-            <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
+        
+        <div class="nav-center-group">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('Weekly Videos', this)">Weekly Videos</button>
+                <button class="nav-tab" onclick="switchTab('PSAD', this)">PSAD</button>
+                <button class="nav-tab" onclick="switchTab('MSTC', this)">MSTC</button>
+                <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
+            </div>
         </div>
+
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
             Connected
         </div>
@@ -332,16 +343,34 @@
         let currentStudentName = "Reviewee";
 
         async function initializeApp() {
+            // 1. Check if section/user is passed via URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('user')) {
+                currentStudentName = urlParams.get('user');
+            }
+            if (urlParams.has('section')) {
+                currentSection = urlParams.get('section');
+            }
+
+            // 2. Automatically detect section and user name from Microsoft Teams context if embedded
             try {
                 if (window.self !== window.top) {
                     await microsoftTeams.app.initialize();
                     microsoftTeams.app.notifySuccess();
                     const context = await microsoftTeams.app.getContext();
-                    currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
-                    currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
+                    
+                    if (context.user?.displayName) {
+                        currentStudentName = context.user.displayName;
+                    }
+                    // Automatically reads the Teams Channel name (e.g., "Sections A4 and B4")
+                    if (context.channel?.name) {
+                        currentSection = context.channel.name;
+                    } else if (context.team?.displayName) {
+                        currentSection = context.team.displayName;
+                    }
                 }
             } catch (err) {
-                console.warn("Running in standard browser mode or Teams context skipped.", err);
+                console.warn("Running in standalone mode or Teams SDK context skipped.", err);
             }
 
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
@@ -455,7 +484,11 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for ${activeTab}. Please verify list items contain titles and embed URLs.</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for section "${currentSection}" under ${activeTab}. Make sure your SharePoint list item's "Sections" column matches this channel name exactly.</p>`;
+                document.getElementById('lecturePlayerFrame').src = "";
+                document.getElementById('currentVideoTitle').textContent = "No replays available";
+                document.getElementById('currentVideoDesc').textContent = "Please add items to your SharePoint list with matching Section names.";
+                document.getElementById('fallbackActionBox').style.display = 'none';
                 return;
             }
 
