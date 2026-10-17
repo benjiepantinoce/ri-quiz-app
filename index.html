@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Innovations - Lecture Replays</title>
-    <!-- Microsoft Teams JS SDK (Version 2.19) -->
+    <!-- Microsoft Teams JS SDK -->
     <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -23,7 +23,6 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            transition: filter 0.2s ease;
         }
 
         .ri-navbar {
@@ -331,11 +330,10 @@
 
     <script>
         let allRows = [];
-        let currentSection = "Sections A3 and B3"; // Default fallback section matching your Teams channel view
+        let currentSection = "Sections A3 and B3"; // Fallback channel section
         let activeTab = "Weekly Videos";
         let currentStudentName = "Reviewee";
 
-        // Automatically initialize Teams context on load for seamless auto-login
         async function initializeApp() {
             if (typeof microsoftTeams !== 'undefined') {
                 try {
@@ -361,7 +359,6 @@
                 }
             }
 
-            // Fallback display formatting if name contains email
             let shortName = currentStudentName.includes('@') ? currentStudentName.split('@')[0] : currentStudentName;
             document.getElementById('userProfileDisplay').textContent = `👤 ${shortName} ▼`;
             
@@ -376,7 +373,6 @@
             const dateStr = new Date().toISOString().slice(0, 10);
             watermark.textContent = `${name} • ${dateStr}`;
 
-            // Periodically shift watermark position for security
             setInterval(() => {
                 watermark.style.top = `${Math.floor(Math.random() * 70) + 10}%`;
                 watermark.style.left = `${Math.floor(Math.random() * 50) + 10}%`;
@@ -387,6 +383,7 @@
             document.getElementById('sectionTitleHeader').textContent = sectionName;
             
             try {
+                // Direct connection to your SharePoint list database
                 const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
                 const listName = "RI Lectures Video Replay";
                 const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
@@ -428,7 +425,7 @@
                     .filter(item => item.Title !== "" && item.URL !== "");
 
             } catch (error) {
-                console.warn("SharePoint list fetch restricted outside authenticated Teams session cookie boundary:", error);
+                console.warn("SharePoint list fetch restricted outside authenticated Teams session boundary:", error);
                 allRows = [];
             }
             renderView();
@@ -477,7 +474,7 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found matching this section/filter.</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for ${currentSection} under ${activeTab}.</p>`;
                 return;
             }
 
