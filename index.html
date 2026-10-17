@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Innovations - Video Playback Test</title>
-    <!-- Microsoft Teams SDK -->
-    <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f9f4;
@@ -117,10 +115,10 @@
     <div class="ri-navbar">
         <div class="ri-brand">
             <div class="ri-logo-box">RI!</div>
-            <span>Review Innovations - Video Playback & Watermark Test</span>
+            <span>Review Innovations - Watermark & Player Test</span>
         </div>
-        <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Connecting...
+        <div style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
+            Secure Stream ▼
         </div>
     </div>
 
@@ -130,42 +128,24 @@
                 <!-- Floating security watermark layer -->
                 <div id="watermark">SECURE REPLAY</div>
                 <!-- Test Video Embed Frame -->
-                <iframe id="testPlayerFrame" src="https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=IQDVfJCZ7qTMSbIJFLQMQ7KHAfnPKwIkdeKqzbbODh211-k&embedOptions=true" allowfullscreen></iframe>
+                <iframe src="https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=IQDVfJCZ7qTMSbIJFLQMQ7KHAfnPKwIkdeKqzbbODh211-k&embedOptions=true" allowfullscreen></iframe>
             </div>
             <div class="video-meta">
-                <h3 id="videoTitle">Test Lecture Replay</h3>
-                <p id="videoDesc" class="video-desc">Testing playback compatibility and active dynamic student watermarking over the video frame.</p>
+                <h3>Test Lecture Replay</h3>
+                <p class="video-desc">Testing direct playback and active dynamic watermarking with zero login prompts.</p>
             </div>
         </div>
     </div>
 
     <script>
-        async function initializeTest() {
-            let studentName = "Reviewee";
+        // Simple watermark generator using URL query parameter (e.g. ?user=Benjie) or default
+        function initWatermark() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentName = urlParams.get('user') || "Reviewee";
             
-            try {
-                if (window.self !== window.top) {
-                    await microsoftTeams.app.initialize();
-                    microsoftTeams.app.notifySuccess();
-                    const context = await microsoftTeams.app.getContext();
-                    if (context.user?.displayName) {
-                        studentName = context.user.displayName;
-                    }
-                }
-            } catch (err) {
-                console.warn("Running in standard browser test mode.", err);
-            }
-
-            document.getElementById('userProfileDisplay').textContent = `${studentName} ▼`;
-            initWatermark(studentName);
-        }
-
-        initializeTest();
-
-        function initWatermark(name) {
             const watermark = document.getElementById('watermark');
             const dateStr = new Date().toISOString().slice(0, 10);
-            watermark.textContent = `${name} • ${dateStr}`;
+            watermark.textContent = `${studentName} • ${dateStr}`;
 
             // Slowly shift watermark position every 25 seconds for protection
             setInterval(() => {
@@ -173,6 +153,8 @@
                 watermark.style.left = `${Math.floor(Math.random() * 50) + 10}%`;
             }, 25000);
         }
+
+        initWatermark();
     </script>
 </body>
 </html>
