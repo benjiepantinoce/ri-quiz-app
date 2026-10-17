@@ -136,19 +136,19 @@
             display: block;
         }
 
-        /* Subtle, slow-moving security watermark overlaying the Microsoft Stream player */
+        /* Subtle, slow-moving security watermark */
         #watermark {
             position: absolute;
             top: 20%;
             left: 15%;
-            color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.15);
             font-size: clamp(12px, 1.8vw, 20px);
             font-weight: 700;
             pointer-events: none;
             user-select: none;
             transition: all 25s ease-in-out;
             z-index: 10;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             white-space: nowrap;
         }
 
@@ -303,9 +303,7 @@
             <div>
                 <div class="player-card">
                     <div class="video-wrapper">
-                        <!-- Protected Floating Watermark Layer -->
                         <div id="watermark">SECURE REPLAY</div>
-                        <!-- Microsoft Stream Embed Player Iframe -->
                         <iframe id="lecturePlayerFrame" src="" allowfullscreen></iframe>
                     </div>
                     <div class="video-meta">
