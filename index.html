@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Innovations - Lecture Replays</title>
-    <!-- Microsoft Teams JS SDK (Version 2.19) -->
+    <!-- Microsoft Teams JS SDK -->
     <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -22,7 +22,6 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
-            transition: filter 0.2s ease;
         }
 
         .ri-navbar {
@@ -329,7 +328,37 @@
     </div>
 
     <script>
-        let allRows = [];
+        // --- VIDEO REPLAY DATABASE (Easily update with your SharePoint/Stream links) ---
+        let allRows = [
+            {
+                Title: "TRIGO 1: Plane & Solid Geometry",
+                MainSubject: "MSTC",
+                SubSubject: "Trigonometry",
+                WEEK: "WEEK 1",
+                Sections: "Sections A4 and B4",
+                Description: "Review of trigonometric identities, angle properties, triangles, and solid geometry formulas.",
+                URL: "https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=ed7c1be8-6890-4884-a3f2-66b039977699&embed=%7B%22ust%22%3Atrue%2C%22hv%22%3A%22CopyEmbedCode%22%7D"
+            },
+            {
+                Title: "GEO 1: Distance & Leveling",
+                MainSubject: "MSTC",
+                SubSubject: "Surveying",
+                WEEK: "WEEK 1",
+                Sections: "Sections A4 and B4",
+                Description: "Distance measurement, data assessment, and leveling computations.",
+                URL: "https://rionline.sharepoint.com/:v:/s/RIInstructors/IQBjbcaiRKYOQrlsfBi_oUPHAZLrCbgZTQbuZa3QTHmbl_w?e=7S7j7E"
+            },
+            {
+                Title: "GEO 2: Consistency & Classification of Soil",
+                MainSubject: "HPGE",
+                SubSubject: "Geotechnical Engineering",
+                WEEK: "WEEK 2",
+                Sections: "Sections A4 and B4",
+                Description: "Soil consistency limits, liquidity index, and USCS soil classification methods.",
+                URL: "https://rionline.sharepoint.com/:v:/s/RIInstructors/IQBM7p7yk0SbKe89Wy9maEARzHW-hjRK3AZYTzwxP74w?e=vCR5Ve"
+            }
+        ];
+
         let currentSection = "Sections A4 and B4";
         let activeTab = "Weekly Videos";
         let currentStudentName = "Reviewee";
@@ -349,13 +378,14 @@
                         currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
                     }
                 } catch (err) {
-                    console.log("Running in standard browser mode or Teams context timeout.");
+                    console.log("Teams context fallback to default:", err);
                 }
             }
 
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
             initWatermark(currentStudentName);
-            await fetchSharePointList(currentSection);
+            document.getElementById('sectionTitleHeader').textContent = currentSection;
+            renderView();
         }
 
         window.addEventListener('DOMContentLoaded', initializeApp);
@@ -371,57 +401,6 @@
             }, 25000);
         }
 
-        async function fetchSharePointList(sectionName) {
-            document.getElementById('sectionTitleHeader').textContent = sectionName;
-            
-            try {
-                const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
-                const listName = "RI Lectures Video Replay";
-                const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'GET',
-                    headers: { "Accept": "application/json;odata=verbose" },
-                    credentials: 'include'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const rawRows = data.d ? data.d.results : [];
-
-                allRows = rawRows
-                    .map(item => {
-                        let parsedUrl = "";
-                        if (item.URL) {
-                            if (typeof item.URL === 'object' && item.URL.Url) {
-                                parsedUrl = item.URL.Url;
-                            } else if (typeof item.URL === 'string') {
-                                parsedUrl = item.URL;
-                            }
-                        }
-
-                        return {
-                            Title: item.Title ? item.Title.trim() : "",
-                            MainSubject: item.MainSubject ? item.MainSubject.trim() : "General",
-                            SubSubject: item.SubSubject ? item.SubSubject.trim() : "Review",
-                            WEEK: item.WEEK ? item.WEEK.trim() : "WEEK 1",
-                            Sections: item.Sections ? item.Sections.trim() : sectionName,
-                            Description: item.Description ? item.Description.trim() : "Review session covering core board exam concepts.",
-                            URL: parsedUrl
-                        };
-                    })
-                    .filter(item => item.Title !== "" && item.URL !== "");
-
-            } catch (error) {
-                console.warn("SharePoint fetch restricted or cookie blocked outside Teams session:", error);
-                allRows = [];
-            }
-            renderView();
-        }
-
         function switchTab(tabName, btnElement) {
             document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
@@ -435,10 +414,11 @@
         }
 
         function renderView() {
-            let filteredRows = allRows;
+            // Filter by section and active tab
+            let filteredRows = allRows.filter(item => item.Sections.toLowerCase() === currentSection.toLowerCase());
 
             if (activeTab !== "Weekly Videos") {
-                filteredRows = allRows.filter(item => item.MainSubject && item.MainSubject.toUpperCase() === activeTab.toUpperCase());
+                filteredRows = filteredRows.filter(item => item.MainSubject && item.MainSubject.toUpperCase() === activeTab.toUpperCase());
             }
 
             let groupedMap = {};
@@ -465,7 +445,7 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in SharePoint for ${activeTab}. (If testing in a regular browser tab, make sure you are logged into SharePoint, or open this app directly inside your Teams channel tab).</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found for ${activeTab}.</p>`;
                 return;
             }
 
