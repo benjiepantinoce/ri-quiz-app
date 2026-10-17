@@ -333,13 +333,15 @@
 
         async function initializeApp() {
             try {
-                await microsoftTeams.app.initialize();
-                microsoftTeams.app.notifySuccess();
-                const context = await microsoftTeams.app.getContext();
-                currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
-                currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
+                if (window.self !== window.top) {
+                    await microsoftTeams.app.initialize();
+                    microsoftTeams.app.notifySuccess();
+                    const context = await microsoftTeams.app.getContext();
+                    currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
+                    currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
+                }
             } catch (err) {
-                console.warn("Running in standard browser mode.", err);
+                console.warn("Running in standard browser mode or Teams context skipped.", err);
             }
 
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
