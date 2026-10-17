@@ -139,14 +139,14 @@
             position: absolute;
             top: 20%;
             left: 15%;
-            color: rgba(255, 255, 255, 0.15);
-            font-size: clamp(12px, 1.8vw, 20px);
+            color: rgba(255, 255, 255, 0.2);
+            font-size: clamp(14px, 2vw, 22px);
             font-weight: 700;
             pointer-events: none;
             user-select: none;
             transition: all 25s ease-in-out;
             z-index: 10;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
             white-space: nowrap;
         }
 
@@ -287,7 +287,7 @@
             <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
         </div>
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Connecting to Teams...
+            Connecting...
         </div>
     </div>
 
@@ -339,13 +339,14 @@
                 currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
                 currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
             } catch (err) {
-                console.warn("Teams context initialization skipped or failed, using defaults.", err);
+                console.warn("Running in standard browser mode.", err);
             }
 
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
             initWatermark(currentStudentName);
 
-            await fetchSectionDataSeamless(currentSection);
+            // Fetch list data via SharePoint REST API endpoint
+            await fetchSectionDataSharePoint(currentSection);
         }
 
         initializeApp();
@@ -361,26 +362,10 @@
             }, 25000);
         }
 
-        async function getTeamsAuthToken() {
-            return new Promise((resolve, reject) => {
-                if (typeof microsoftTeams !== 'undefined' && microsoftTeams.authentication) {
-                    microsoftTeams.authentication.getAuthToken({
-                        successCallback: (token) => resolve(token),
-                        failureCallback: (error) => reject(error)
-                    });
-                } else {
-                    reject("Teams SDK authentication not available.");
-                }
-            });
-        }
-
-        async function fetchSectionDataSeamless(sectionName) {
+        async function fetchSectionDataSharePoint(sectionName) {
             document.getElementById('sectionTitleHeader').textContent = sectionName;
             
             try {
-                // Fetch silent SSO token directly from Teams client session
-                const accessToken = await getTeamsAuthToken();
-                
                 const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
                 const listName = "RI Lectures Video Replay";
                 const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
@@ -388,9 +373,9 @@
                 const response = await fetch(endpoint, {
                     method: 'GET',
                     headers: { 
-                        "Accept": "application/json;odata=verbose",
-                        "Authorization": `Bearer ${accessToken}`
-                    }
+                        "Accept": "application/json;odata=verbose"
+                    },
+                    credentials: 'include'
                 });
                 
                 const data = await response.json();
@@ -420,7 +405,7 @@
                     .filter(item => item.Title !== "" && item.URL !== "");
 
             } catch (error) {
-                console.warn("Teams SSO token fetch failed or SharePoint list restricted:", error);
+                console.error("Error fetching SharePoint list data:", error);
                 allRows = [];
             }
             renderView();
