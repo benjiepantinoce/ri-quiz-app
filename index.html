@@ -6,8 +6,6 @@
     <title>Review Innovations - Lecture Replays</title>
     <!-- Microsoft Teams SDK -->
     <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
-    <!-- MSAL.js Authentication Library -->
-    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f9f4;
@@ -289,7 +287,7 @@
             <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
         </div>
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Loading User...
+            Connecting to Teams...
         </div>
     </div>
 
@@ -328,24 +326,6 @@
     </div>
 
     <script>
-        // --- MSAL CONFIGURATION WITH YOUR CLIENT ID ---
-        const msalConfig = {
-            auth: {
-                clientId: "b5e44e7c-f5be-4c96-b066-bf6c6bdaf794",
-                authority: "https://login.microsoftonline.com/common",
-                redirectUri: window.location.origin
-            },
-            cache: {
-                cacheLocation: "localStorage",
-                storeAuthStateInCookie: false
-            }
-        };
-
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-        const tokenRequest = {
-            scopes: ["https://rionline.sharepoint.com/Sites.Read.All"]
-        };
-
         let allRows = [];
         let currentSection = "Sections A4 and B4";
         let activeTab = "Weekly Videos";
@@ -353,9 +333,8 @@
 
         async function initializeApp() {
             try {
-                await msalInstance.initialize();
-                
                 await microsoftTeams.app.initialize();
+                microsoftTeams.app.notifySuccess();
                 const context = await microsoftTeams.app.getContext();
                 currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
                 currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
@@ -366,7 +345,7 @@
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
             initWatermark(currentStudentName);
 
-            await fetchSectionDataSecure(currentSection);
+            await fetchSectionDataSeamless(currentSection);
         }
 
         initializeApp();
@@ -382,29 +361,25 @@
             }, 25000);
         }
 
-        async function getAccessToken() {
-            try {
-                const accounts = msalInstance.getAllAccounts();
-                if (accounts.length > 0) {
-                    tokenRequest.account = accounts[0];
-                    const response = await msalInstance.acquireTokenSilent(tokenRequest);
-                    return response.accessToken;
+        async function getTeamsAuthToken() {
+            return new Promise((resolve, reject) => {
+                if (typeof microsoftTeams !== 'undefined' && microsoftTeams.authentication) {
+                    microsoftTeams.authentication.getAuthToken({
+                        successCallback: (token) => resolve(token),
+                        failureCallback: (error) => reject(error)
+                    });
                 } else {
-                    const response = await msalInstance.loginPopup(tokenRequest);
-                    return response.accessToken;
+                    reject("Teams SDK authentication not available.");
                 }
-            } catch (error) {
-                console.warn("Silent token acquisition failed, prompting popup login...", error);
-                const response = await msalInstance.loginPopup(tokenRequest);
-                return response.accessToken;
-            }
+            });
         }
 
-        async function fetchSectionDataSecure(sectionName) {
+        async function fetchSectionDataSeamless(sectionName) {
             document.getElementById('sectionTitleHeader').textContent = sectionName;
             
             try {
-                const accessToken = await getAccessToken();
+                // Fetch silent SSO token directly from Teams client session
+                const accessToken = await getTeamsAuthToken();
                 
                 const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
                 const listName = "RI Lectures Video Replay";
@@ -445,7 +420,7 @@
                     .filter(item => item.Title !== "" && item.URL !== "");
 
             } catch (error) {
-                console.error("MSAL authentication or SharePoint fetch error:", error);
+                console.warn("Teams SSO token fetch failed or SharePoint list restricted:", error);
                 allRows = [];
             }
             renderView();
