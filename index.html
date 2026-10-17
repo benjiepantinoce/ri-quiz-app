@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Innovations - Lecture Replays</title>
-    <!-- Microsoft Teams JS SDK -->
+    <!-- Microsoft Teams JS SDK (Version 2.19) -->
     <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -22,6 +22,8 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
+            transition: filter 0.2s ease;
         }
 
         .ri-navbar {
@@ -139,14 +141,14 @@
             position: absolute;
             top: 20%;
             left: 15%;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: clamp(12px, 1.8vw, 20px);
+            color: rgba(255, 255, 255, 0.25);
+            font-size: clamp(14px, 2vw, 22px);
             font-weight: 700;
             pointer-events: none;
             user-select: none;
             transition: all 25s ease-in-out;
             z-index: 10;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
             white-space: nowrap;
         }
 
@@ -287,7 +289,7 @@
             <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
         </div>
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Loading User...
+            Connecting to Teams...
         </div>
     </div>
 
@@ -328,41 +330,12 @@
     </div>
 
     <script>
-        // --- VIDEO REPLAY DATABASE (Easily update with your SharePoint/Stream links) ---
-        let allRows = [
-            {
-                Title: "TRIGO 1: Plane & Solid Geometry",
-                MainSubject: "MSTC",
-                SubSubject: "Trigonometry",
-                WEEK: "WEEK 1",
-                Sections: "Sections A4 and B4",
-                Description: "Review of trigonometric identities, angle properties, triangles, and solid geometry formulas.",
-                URL: "https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=ed7c1be8-6890-4884-a3f2-66b039977699&embed=%7B%22ust%22%3Atrue%2C%22hv%22%3A%22CopyEmbedCode%22%7D"
-            },
-            {
-                Title: "GEO 1: Distance & Leveling",
-                MainSubject: "MSTC",
-                SubSubject: "Surveying",
-                WEEK: "WEEK 1",
-                Sections: "Sections A4 and B4",
-                Description: "Distance measurement, data assessment, and leveling computations.",
-                URL: "https://rionline.sharepoint.com/:v:/s/RIInstructors/IQBjbcaiRKYOQrlsfBi_oUPHAZLrCbgZTQbuZa3QTHmbl_w?e=7S7j7E"
-            },
-            {
-                Title: "GEO 2: Consistency & Classification of Soil",
-                MainSubject: "HPGE",
-                SubSubject: "Geotechnical Engineering",
-                WEEK: "WEEK 2",
-                Sections: "Sections A4 and B4",
-                Description: "Soil consistency limits, liquidity index, and USCS soil classification methods.",
-                URL: "https://rionline.sharepoint.com/:v:/s/RIInstructors/IQBM7p7yk0SbKe89Wy9maEARzHW-hjRK3AZYTzwxP74w?e=vCR5Ve"
-            }
-        ];
-
-        let currentSection = "Sections A4 and B4";
+        let allRows = [];
+        let currentSection = "Sections A3 and B3"; // Default fallback section matching your Teams channel view
         let activeTab = "Weekly Videos";
         let currentStudentName = "Reviewee";
 
+        // Automatically initialize Teams context on load for seamless auto-login
         async function initializeApp() {
             if (typeof microsoftTeams !== 'undefined') {
                 try {
@@ -370,22 +343,30 @@
                     microsoftTeams.app.notifySuccess();
                     const context = await Promise.race([
                         microsoftTeams.app.getContext(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1200))
                     ]);
                     
-                    if (context && context.user) {
-                        currentStudentName = context.user.displayName || context.user.userPrincipalName || "Reviewee";
-                        currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
+                    if (context) {
+                        if (context.user) {
+                            currentStudentName = context.user.displayName || context.user.userPrincipalName || "Reviewee";
+                        }
+                        if (context.channel && context.channel.displayName) {
+                            currentSection = context.channel.displayName;
+                        } else if (context.team && context.team.displayName) {
+                            currentSection = context.team.displayName;
+                        }
                     }
                 } catch (err) {
-                    console.log("Teams context fallback to default:", err);
+                    console.log("Teams context handshake note:", err);
                 }
             }
 
-            document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
-            initWatermark(currentStudentName);
-            document.getElementById('sectionTitleHeader').textContent = currentSection;
-            renderView();
+            // Fallback display formatting if name contains email
+            let shortName = currentStudentName.includes('@') ? currentStudentName.split('@')[0] : currentStudentName;
+            document.getElementById('userProfileDisplay').textContent = `👤 ${shortName} ▼`;
+            
+            initWatermark(shortName);
+            await fetchSharePointList(currentSection);
         }
 
         window.addEventListener('DOMContentLoaded', initializeApp);
@@ -395,10 +376,62 @@
             const dateStr = new Date().toISOString().slice(0, 10);
             watermark.textContent = `${name} • ${dateStr}`;
 
+            // Periodically shift watermark position for security
             setInterval(() => {
                 watermark.style.top = `${Math.floor(Math.random() * 70) + 10}%`;
                 watermark.style.left = `${Math.floor(Math.random() * 50) + 10}%`;
             }, 25000);
+        }
+
+        async function fetchSharePointList(sectionName) {
+            document.getElementById('sectionTitleHeader').textContent = sectionName;
+            
+            try {
+                const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
+                const listName = "RI Lectures Video Replay";
+                const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: { "Accept": "application/json;odata=verbose" },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const rawRows = data.d ? data.d.results : [];
+
+                allRows = rawRows
+                    .map(item => {
+                        let parsedUrl = "";
+                        if (item.URL) {
+                            if (typeof item.URL === 'object' && item.URL.Url) {
+                                parsedUrl = item.URL.Url;
+                            } else if (typeof item.URL === 'string') {
+                                parsedUrl = item.URL;
+                            }
+                        }
+
+                        return {
+                            Title: item.Title ? item.Title.trim() : "",
+                            MainSubject: item.MainSubject ? item.MainSubject.trim() : "General",
+                            SubSubject: item.SubSubject ? item.SubSubject.trim() : "Review",
+                            WEEK: item.WEEK ? item.WEEK.trim() : "WEEK 1",
+                            Sections: item.Sections ? item.Sections.trim() : sectionName,
+                            Description: item.Description ? item.Description.trim() : "Review session covering core board exam concepts.",
+                            URL: parsedUrl
+                        };
+                    })
+                    .filter(item => item.Title !== "" && item.URL !== "");
+
+            } catch (error) {
+                console.warn("SharePoint list fetch restricted outside authenticated Teams session cookie boundary:", error);
+                allRows = [];
+            }
+            renderView();
         }
 
         function switchTab(tabName, btnElement) {
@@ -414,11 +447,10 @@
         }
 
         function renderView() {
-            // Filter by section and active tab
-            let filteredRows = allRows.filter(item => item.Sections.toLowerCase() === currentSection.toLowerCase());
+            let filteredRows = allRows;
 
             if (activeTab !== "Weekly Videos") {
-                filteredRows = filteredRows.filter(item => item.MainSubject && item.MainSubject.toUpperCase() === activeTab.toUpperCase());
+                filteredRows = allRows.filter(item => item.MainSubject && item.MainSubject.toUpperCase() === activeTab.toUpperCase());
             }
 
             let groupedMap = {};
@@ -445,7 +477,7 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found for ${activeTab}.</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found matching this section/filter.</p>`;
                 return;
             }
 
