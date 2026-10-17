@@ -334,7 +334,6 @@
         let activeTab = "Weekly Videos";
         let currentStudentName = "Reviewee";
 
-        // Initialize Teams context seamlessly without looping token prompts
         async function initializeApp() {
             if (typeof microsoftTeams !== 'undefined') {
                 try {
@@ -350,13 +349,13 @@
                         currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
                     }
                 } catch (err) {
-                    console.log("Teams context fallback to default:", err);
+                    console.log("Running in standard browser mode or Teams context timeout.");
                 }
             }
 
             document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
             initWatermark(currentStudentName);
-            await fetchSectionDataDirect(currentSection);
+            await fetchSharePointList(currentSection);
         }
 
         window.addEventListener('DOMContentLoaded', initializeApp);
@@ -372,11 +371,10 @@
             }, 25000);
         }
 
-        async function fetchSectionDataDirect(sectionName) {
+        async function fetchSharePointList(sectionName) {
             document.getElementById('sectionTitleHeader').textContent = sectionName;
             
             try {
-                // Direct SharePoint REST call (utilizing native SharePoint cookie context inside Teams iframe)
                 const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
                 const listName = "RI Lectures Video Replay";
                 const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
@@ -387,6 +385,10 @@
                     credentials: 'include'
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
                 const rawRows = data.d ? data.d.results : [];
 
@@ -414,7 +416,7 @@
                     .filter(item => item.Title !== "" && item.URL !== "");
 
             } catch (error) {
-                console.warn("SharePoint direct fetch restricted or network error:", error);
+                console.warn("SharePoint fetch restricted or cookie blocked outside Teams session:", error);
                 allRows = [];
             }
             renderView();
@@ -463,7 +465,7 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for ${activeTab}. Please verify list items contain titles and embed URLs.</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in SharePoint for ${activeTab}. (If testing in a regular browser tab, make sure you are logged into SharePoint, or open this app directly inside your Teams channel tab).</p>`;
                 return;
             }
 
