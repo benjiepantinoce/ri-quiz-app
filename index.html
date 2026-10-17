@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Innovations - Lecture Replays</title>
-    <!-- Microsoft Teams JS SDK -->
-    <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
+    <!-- Microsoft Teams SDK -->
+    <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
+    <!-- MSAL.js Authentication Library -->
+    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f9f4;
@@ -22,7 +24,6 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
         }
 
         .ri-navbar {
@@ -140,14 +141,14 @@
             position: absolute;
             top: 20%;
             left: 15%;
-            color: rgba(255, 255, 255, 0.25);
-            font-size: clamp(14px, 2vw, 22px);
+            color: rgba(255, 255, 255, 0.2);
+            font-size: clamp(12px, 1.8vw, 20px);
             font-weight: 700;
             pointer-events: none;
             user-select: none;
             transition: all 25s ease-in-out;
             z-index: 10;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
             white-space: nowrap;
         }
 
@@ -288,7 +289,7 @@
             <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
         </div>
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Connecting to Teams...
+            Loading User...
         </div>
     </div>
 
@@ -329,44 +330,48 @@
     </div>
 
     <script>
+        // --- MSAL CONFIGURATION WITH YOUR CLIENT ID ---
+        const msalConfig = {
+            auth: {
+                clientId: "b5e44e7c-f5be-4c96-b066-bf6c6bdaf794",
+                authority: "https://login.microsoftonline.com/common",
+                redirectUri: window.location.origin
+            },
+            cache: {
+                cacheLocation: "localStorage",
+                storeAuthStateInCookie: false
+            }
+        };
+
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+        const tokenRequest = {
+            scopes: ["https://rionline.sharepoint.com/Sites.Read.All"]
+        };
+
         let allRows = [];
-        let currentSection = "Sections A3 and B3"; // Fallback channel section
+        let currentSection = "Sections A4 and B4";
         let activeTab = "Weekly Videos";
         let currentStudentName = "Reviewee";
 
         async function initializeApp() {
-            if (typeof microsoftTeams !== 'undefined') {
-                try {
-                    await microsoftTeams.app.initialize();
-                    microsoftTeams.app.notifySuccess();
-                    const context = await Promise.race([
-                        microsoftTeams.app.getContext(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1200))
-                    ]);
-                    
-                    if (context) {
-                        if (context.user) {
-                            currentStudentName = context.user.displayName || context.user.userPrincipalName || "Reviewee";
-                        }
-                        if (context.channel && context.channel.displayName) {
-                            currentSection = context.channel.displayName;
-                        } else if (context.team && context.team.displayName) {
-                            currentSection = context.team.displayName;
-                        }
-                    }
-                } catch (err) {
-                    console.log("Teams context handshake note:", err);
-                }
+            try {
+                await msalInstance.initialize();
+                
+                await microsoftTeams.app.initialize();
+                const context = await microsoftTeams.app.getContext();
+                currentStudentName = context.user?.displayName || context.user?.userPrincipalName || "Reviewee";
+                currentSection = context.channel?.name || context.team?.displayName || "Sections A4 and B4";
+            } catch (err) {
+                console.warn("Teams context initialization skipped or failed, using defaults.", err);
             }
 
-            let shortName = currentStudentName.includes('@') ? currentStudentName.split('@')[0] : currentStudentName;
-            document.getElementById('userProfileDisplay').textContent = `👤 ${shortName} ▼`;
-            
-            initWatermark(shortName);
-            await fetchSharePointList(currentSection);
+            document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
+            initWatermark(currentStudentName);
+
+            await fetchSectionDataSecure(currentSection);
         }
 
-        window.addEventListener('DOMContentLoaded', initializeApp);
+        initializeApp();
 
         function initWatermark(name) {
             const watermark = document.getElementById('watermark');
@@ -379,25 +384,42 @@
             }, 25000);
         }
 
-        async function fetchSharePointList(sectionName) {
+        async function getAccessToken() {
+            try {
+                const accounts = msalInstance.getAllAccounts();
+                if (accounts.length > 0) {
+                    tokenRequest.account = accounts[0];
+                    const response = await msalInstance.acquireTokenSilent(tokenRequest);
+                    return response.accessToken;
+                } else {
+                    const response = await msalInstance.loginPopup(tokenRequest);
+                    return response.accessToken;
+                }
+            } catch (error) {
+                console.warn("Silent token acquisition failed, prompting popup login...", error);
+                const response = await msalInstance.loginPopup(tokenRequest);
+                return response.accessToken;
+            }
+        }
+
+        async function fetchSectionDataSecure(sectionName) {
             document.getElementById('sectionTitleHeader').textContent = sectionName;
             
             try {
-                // Direct connection to your SharePoint list database
+                const accessToken = await getAccessToken();
+                
                 const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
                 const listName = "RI Lectures Video Replay";
                 const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
                 
                 const response = await fetch(endpoint, {
                     method: 'GET',
-                    headers: { "Accept": "application/json;odata=verbose" },
-                    credentials: 'include'
+                    headers: { 
+                        "Accept": "application/json;odata=verbose",
+                        "Authorization": `Bearer ${accessToken}`
+                    }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const data = await response.json();
                 const rawRows = data.d ? data.d.results : [];
 
@@ -425,7 +447,7 @@
                     .filter(item => item.Title !== "" && item.URL !== "");
 
             } catch (error) {
-                console.warn("SharePoint list fetch restricted outside authenticated Teams session boundary:", error);
+                console.error("MSAL authentication or SharePoint fetch error:", error);
                 allRows = [];
             }
             renderView();
@@ -474,7 +496,7 @@
             container.innerHTML = '';
 
             if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for ${currentSection} under ${activeTab}.</p>`;
+                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for ${activeTab}. Please verify list items contain titles and embed URLs.</p>`;
                 return;
             }
 
