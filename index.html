@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Innovations - Video Playback Test</title>
+    <title>Review Innovations - Secure Lecture Replay</title>
     <style>
         :root {
             --bg-color: #f7f9f4;
@@ -20,39 +20,16 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
-        }
-
-        .ri-navbar {
-            background-color: #ffffff;
-            border-bottom: 3px solid var(--ri-yellow);
-            padding: 12px 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-        }
-
-        .ri-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 800;
-            color: var(--ri-green);
-            font-size: 18px;
-        }
-
-        .ri-logo-box {
-            background-color: var(--ri-green);
-            color: var(--ri-yellow);
-            font-weight: 900;
-            font-size: 14px;
-            padding: 5px 8px;
-            border-radius: 4px;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 16px;
+            width: 100%;
+            max-width: 960px;
+            padding: 16px;
         }
 
         .player-card {
@@ -60,7 +37,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
 
         .video-wrapper {
@@ -95,50 +72,41 @@
 
         .video-meta {
             padding: 20px;
+            border-top: 1px solid var(--border-color);
         }
 
         .video-meta h3 {
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
             color: var(--ri-green);
             font-size: 20px;
         }
 
         .video-desc {
             font-size: 14px;
-            color: #444;
+            color: #555;
             margin: 0;
         }
     </style>
 </head>
 <body>
 
-    <div class="ri-navbar">
-        <div class="ri-brand">
-            <div class="ri-logo-box">RI!</div>
-            <span>Review Innovations - Watermark & Player Test</span>
-        </div>
-        <div style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Secure Stream ▼
-        </div>
-    </div>
-
     <div class="container">
         <div class="player-card">
             <div class="video-wrapper">
                 <!-- Floating security watermark layer -->
                 <div id="watermark">SECURE REPLAY</div>
-                <!-- Test Video Embed Frame -->
+                <!-- Direct Video Stream Embed -->
                 <iframe src="https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=IQDVfJCZ7qTMSbIJFLQMQ7KHAfnPKwIkdeKqzbbODh211-k&embedOptions=true" allowfullscreen></iframe>
             </div>
             <div class="video-meta">
-                <h3>Test Lecture Replay</h3>
-                <p class="video-desc">Testing direct playback and active dynamic watermarking with zero login prompts.</p>
+                <h3>Review Innovations Lecture Replay</h3>
+                <p class="video-desc">Protected intellectual property stream. Do not share or record.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Simple watermark generator using URL query parameter (e.g. ?user=Benjie) or default
+        // Generates the security watermark from URL parameters (e.g. ?user=StudentName) or defaults safely
         function initWatermark() {
             const urlParams = new URLSearchParams(window.location.search);
             const studentName = urlParams.get('user') || "Reviewee";
@@ -147,7 +115,7 @@
             const dateStr = new Date().toISOString().slice(0, 10);
             watermark.textContent = `${studentName} • ${dateStr}`;
 
-            // Slowly shift watermark position every 25 seconds for protection
+            // Slowly shift watermark position every 25 seconds across the video frame
             setInterval(() => {
                 watermark.style.top = `${Math.floor(Math.random() * 70) + 10}%`;
                 watermark.style.left = `${Math.floor(Math.random() * 50) + 10}%`;
