@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Innovations - Lecture Replays</title>
+    <title>Review Innovations - Video Playback Test</title>
     <!-- Microsoft Teams SDK -->
     <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
     <style>
@@ -29,10 +29,8 @@
             border-bottom: 3px solid var(--ri-yellow);
             padding: 12px 20px;
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
         }
 
         .ri-brand {
@@ -53,70 +51,10 @@
             border-radius: 4px;
         }
 
-        .nav-center-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .nav-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .nav-tab {
-            background: #f1f5f2;
-            border: 1px solid var(--border-color);
-            font-size: 12px;
-            font-weight: 700;
-            color: #444;
-            cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .nav-tab:hover, .nav-tab.active {
-            background-color: var(--ri-green);
-            color: var(--ri-yellow);
-            border-color: var(--ri-green);
-        }
-
         .container {
-            max-width: 1300px;
-            margin: 20px auto;
+            max-width: 1000px;
+            margin: 30px auto;
             padding: 0 16px;
-        }
-
-        .page-header {
-            margin-bottom: 16px;
-        }
-
-        .page-header h2 {
-            color: var(--ri-green);
-            font-size: 22px;
-            margin: 0 0 4px 0;
-        }
-
-        .page-header p {
-            margin: 0;
-            font-size: 13px;
-            color: #555;
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1.2fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 950px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .player-card {
@@ -124,7 +62,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
         .video-wrapper {
@@ -141,142 +79,36 @@
             display: block;
         }
 
-        /* Subtle, slow-moving security watermark */
+        /* Active moving security watermark */
         #watermark {
             position: absolute;
             top: 20%;
             left: 15%;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: clamp(14px, 2vw, 22px);
+            color: rgba(255, 255, 255, 0.25);
+            font-size: clamp(16px, 2.5vw, 24px);
             font-weight: 700;
             pointer-events: none;
             user-select: none;
             transition: all 25s ease-in-out;
             z-index: 10;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
             white-space: nowrap;
         }
 
         .video-meta {
-            padding: 16px;
+            padding: 20px;
         }
 
         .video-meta h3 {
-            margin: 0 0 6px 0;
+            margin: 0 0 8px 0;
             color: var(--ri-green);
-            font-size: 18px;
+            font-size: 20px;
         }
 
-        .category-tag {
-            display: inline-block;
-            background-color: #e6f4ea;
-            color: var(--ri-green);
-            font-weight: 600;
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-
-        .video-desc-box {
-            background-color: #fafbfc;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 14px;
-            margin-top: 8px;
-            font-size: 13px;
-            color: #333;
-            line-height: 1.4;
-        }
-
-        .video-desc-box h4 {
-            margin: 0 0 4px 0;
-            color: var(--ri-green);
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .fallback-action {
-            margin-top: 12px;
-            display: none;
-        }
-
-        .fallback-btn {
-            background-color: var(--ri-green);
-            color: var(--ri-yellow);
-            border: none;
-            padding: 8px 14px;
-            font-weight: 700;
-            font-size: 13px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .sidebar-title {
-            color: var(--ri-green);
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .module-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .module-header {
-            padding: 12px 16px;
-            background-color: #fafbfc;
-            cursor: pointer;
-            font-weight: 600;
+        .video-desc {
             font-size: 14px;
-            color: var(--ri-green);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .module-header:hover {
-            background-color: #e6f4ea;
-        }
-
-        .lesson-list {
-            list-style: none;
-            padding: 0;
+            color: #444;
             margin: 0;
-            display: none;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .module-card.active .lesson-list {
-            display: block;
-        }
-
-        .lesson-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            font-size: 13px;
-            color: var(--text-main);
-        }
-
-        .lesson-item:last-child {
-            border-bottom: none;
-        }
-
-        .lesson-item:hover {
-            background-color: rgba(17, 94, 46, 0.04);
-        }
-
-        .lesson-item.playing {
-            border-left: 4px solid var(--ri-green);
-            background-color: #e6f4ea;
-            font-weight: 600;
         }
     </style>
 </head>
@@ -285,258 +117,61 @@
     <div class="ri-navbar">
         <div class="ri-brand">
             <div class="ri-logo-box">RI!</div>
-            <span>Review Innovations Replays</span>
+            <span>Review Innovations - Video Playback & Watermark Test</span>
         </div>
-        
-        <div class="nav-center-group">
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="switchTab('Weekly Videos', this)">Weekly Videos</button>
-                <button class="nav-tab" onclick="switchTab('PSAD', this)">PSAD</button>
-                <button class="nav-tab" onclick="switchTab('MSTC', this)">MSTC</button>
-                <button class="nav-tab" onclick="switchTab('HPGE', this)">HPGE</button>
-            </div>
-        </div>
-
         <div id="userProfileDisplay" style="font-weight: 600; font-size: 13px; color: var(--ri-green);">
-            Connected
+            Connecting...
         </div>
     </div>
 
     <div class="container">
-        <div class="page-header">
-            <h2 id="sectionTitleHeader">Loading Section...</h2>
-            <p id="currentTabSubtitle">Viewing all weekly lecture replays.</p>
-        </div>
-
-        <div class="content-grid">
-            <div>
-                <div class="player-card">
-                    <div class="video-wrapper">
-                        <div id="watermark">SECURE REPLAY</div>
-                        <iframe id="lecturePlayerFrame" src="" allowfullscreen></iframe>
-                    </div>
-                    <div class="video-meta">
-                        <span id="categoryTag" class="category-tag">Category</span>
-                        <h3 id="currentVideoTitle">Select a lecture replay</h3>
-                        <div class="video-desc-box">
-                            <h4>Topics Covered:</h4>
-                            <p id="currentVideoDesc">Choose a module from the list to view topics and details.</p>
-                        </div>
-                        <div id="fallbackActionBox" class="fallback-action">
-                            <a id="directStreamBtn" href="#" target="_blank" class="fallback-btn">🔗 Open Secure Replay in New Tab</a>
-                        </div>
-                    </div>
-                </div>
+        <div class="player-card">
+            <div class="video-wrapper">
+                <!-- Floating security watermark layer -->
+                <div id="watermark">SECURE REPLAY</div>
+                <!-- Test Video Embed Frame -->
+                <iframe id="testPlayerFrame" src="https://rionline.sharepoint.com/sites/RIInstructors/_layouts/15/embed.aspx?UniqueId=IQDVfJCZ7qTMSbIJFLQMQ7KHAfnPKwIkdeKqzbbODh211-k&embedOptions=true" allowfullscreen></iframe>
             </div>
-
-            <div>
-                <div class="sidebar-title">Modules</div>
-                <div id="replaysAccordionContainer"></div>
+            <div class="video-meta">
+                <h3 id="videoTitle">Test Lecture Replay</h3>
+                <p id="videoDesc" class="video-desc">Testing playback compatibility and active dynamic student watermarking over the video frame.</p>
             </div>
         </div>
     </div>
 
     <script>
-        let allRows = [];
-        let currentSection = "Sections A4 and B4";
-        let activeTab = "Weekly Videos";
-        let currentStudentName = "Reviewee";
-
-        async function initializeApp() {
-            // 1. Check if section/user is passed via URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('user')) {
-                currentStudentName = urlParams.get('user');
-            }
-            if (urlParams.has('section')) {
-                currentSection = urlParams.get('section');
-            }
-
-            // 2. Automatically detect section and user name from Microsoft Teams context if embedded
+        async function initializeTest() {
+            let studentName = "Reviewee";
+            
             try {
                 if (window.self !== window.top) {
                     await microsoftTeams.app.initialize();
                     microsoftTeams.app.notifySuccess();
                     const context = await microsoftTeams.app.getContext();
-                    
                     if (context.user?.displayName) {
-                        currentStudentName = context.user.displayName;
-                    }
-                    // Automatically reads the Teams Channel name (e.g., "Sections A4 and B4")
-                    if (context.channel?.name) {
-                        currentSection = context.channel.name;
-                    } else if (context.team?.displayName) {
-                        currentSection = context.team.displayName;
+                        studentName = context.user.displayName;
                     }
                 }
             } catch (err) {
-                console.warn("Running in standalone mode or Teams SDK context skipped.", err);
+                console.warn("Running in standard browser test mode.", err);
             }
 
-            document.getElementById('userProfileDisplay').textContent = `${currentStudentName} ▼`;
-            initWatermark(currentStudentName);
-
-            await fetchSectionDataSharePoint(currentSection);
+            document.getElementById('userProfileDisplay').textContent = `${studentName} ▼`;
+            initWatermark(studentName);
         }
 
-        initializeApp();
+        initializeTest();
 
         function initWatermark(name) {
             const watermark = document.getElementById('watermark');
             const dateStr = new Date().toISOString().slice(0, 10);
             watermark.textContent = `${name} • ${dateStr}`;
 
+            // Slowly shift watermark position every 25 seconds for protection
             setInterval(() => {
                 watermark.style.top = `${Math.floor(Math.random() * 70) + 10}%`;
                 watermark.style.left = `${Math.floor(Math.random() * 50) + 10}%`;
             }, 25000);
-        }
-
-        async function fetchSectionDataSharePoint(sectionName) {
-            document.getElementById('sectionTitleHeader').textContent = sectionName;
-            
-            try {
-                const siteUrl = "https://rionline.sharepoint.com/sites/RIInstructors";
-                const listName = "RI Lectures Video Replay";
-                const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Sections eq '${sectionName}'`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'GET',
-                    headers: { 
-                        "Accept": "application/json;odata=verbose"
-                    },
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                const rawRows = data.d ? data.d.results : [];
-
-                allRows = rawRows
-                    .map(item => {
-                        let parsedUrl = "";
-                        if (item.URL) {
-                            if (typeof item.URL === 'object' && item.URL.Url) {
-                                parsedUrl = item.URL.Url;
-                            } else if (typeof item.URL === 'string') {
-                                parsedUrl = item.URL;
-                            }
-                        }
-
-                        return {
-                            Title: item.Title ? item.Title.trim() : "",
-                            MainSubject: item.MainSubject ? item.MainSubject.trim() : "General",
-                            SubSubject: item.SubSubject ? item.SubSubject.trim() : "Review",
-                            WEEK: item.WEEK ? item.WEEK.trim() : "WEEK 1",
-                            Sections: item.Sections ? item.Sections.trim() : sectionName,
-                            Description: item.Description ? item.Description.trim() : "Review session covering core board exam concepts.",
-                            URL: parsedUrl
-                        };
-                    })
-                    .filter(item => item.Title !== "" && item.URL !== "");
-
-            } catch (error) {
-                console.error("Error fetching SharePoint list data natively:", error);
-                allRows = [];
-            }
-            renderView();
-        }
-
-        function switchTab(tabName, btnElement) {
-            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-            activeTab = tabName;
-
-            document.getElementById('currentTabSubtitle').textContent = tabName === 'Weekly Videos' 
-                ? "Viewing all weekly lecture replays." 
-                : `Filtered by subject: ${tabName}`;
-
-            renderView();
-        }
-
-        function renderView() {
-            let filteredRows = allRows;
-
-            if (activeTab !== "Weekly Videos") {
-                filteredRows = allRows.filter(item => item.MainSubject && item.MainSubject.toUpperCase() === activeTab.toUpperCase());
-            }
-
-            let groupedMap = {};
-            filteredRows.forEach(item => {
-                let groupKey = activeTab === "Weekly Videos" ? (item.WEEK || "Replays") : (item.SubSubject || item.MainSubject || "General");
-                
-                if (!groupedMap[groupKey]) {
-                    groupedMap[groupKey] = [];
-                }
-                groupedMap[groupKey].push({ 
-                    title: item.Title, 
-                    desc: item.Description, 
-                    url: item.URL, 
-                    group: groupKey 
-                });
-            });
-
-            const formattedGroups = Object.keys(groupedMap).map(key => ({
-                groupTitle: key,
-                videos: groupedMap[key]
-            }));
-
-            const container = document.getElementById('replaysAccordionContainer');
-            container.innerHTML = '';
-
-            if (formattedGroups.length === 0) {
-                container.innerHTML = `<p style="padding: 15px; background: #fff; border-radius: 6px; font-size:13px; color:#555;">No lecture replays found in the SharePoint list for section "${currentSection}" under ${activeTab}. Make sure your SharePoint list item's "Sections" column matches this channel name exactly.</p>`;
-                document.getElementById('lecturePlayerFrame').src = "";
-                document.getElementById('currentVideoTitle').textContent = "No replays available";
-                document.getElementById('currentVideoDesc').textContent = "Please add items to your SharePoint list with matching Section names.";
-                document.getElementById('fallbackActionBox').style.display = 'none';
-                return;
-            }
-
-            formattedGroups.forEach((group, index) => {
-                const card = document.createElement('div');
-                card.className = `module-card ${index === 0 ? 'active' : ''}`;
-
-                let videoListHtml = group.videos.map(v => `
-                    <li class="lesson-item" onclick="playVideo('${v.url}', '${v.title}', '${v.desc}', '${group.groupTitle}', this)">
-                        ▶ ${v.title}
-                    </li>
-                `).join('');
-
-                card.innerHTML = `
-                    <div class="module-header" onclick="this.parentElement.classList.toggle('active')">
-                        <span>📁 ${group.groupTitle}</span>
-                        <span>▼</span>
-                    </div>
-                    <ul class="lesson-list">
-                        ${videoListHtml}
-                    </ul>
-                `;
-                container.appendChild(card);
-            });
-
-            if (formattedGroups[0]?.videos[0]) {
-                const first = formattedGroups[0].videos[0];
-                playVideo(first.url, first.title, first.desc, formattedGroups[0].groupTitle, container.querySelector('.lesson-item'));
-            }
-        }
-
-        function playVideo(url, title, desc, groupName, element) {
-            document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('playing'));
-            if (element) element.classList.add('playing');
-
-            document.getElementById('currentVideoTitle').textContent = title;
-            document.getElementById('currentVideoDesc').textContent = desc;
-            document.getElementById('categoryTag').textContent = groupName;
-
-            document.getElementById('lecturePlayerFrame').src = url;
-            const directBtn = document.getElementById('directStreamBtn');
-            const actionBox = document.getElementById('fallbackActionBox');
-            if (url) {
-                directBtn.href = url;
-                actionBox.style.display = 'block';
-            } else {
-                actionBox.style.display = 'none';
-            }
         }
     </script>
 </body>
